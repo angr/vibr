@@ -40,14 +40,14 @@ Test fixtures (`angr/binaries`) are never included.
 ## Contents
 
 <!-- vibr:begin -->
-Generated 2026-08-26T12:06:05+00:00 from a selection made 2026-08-26T12:06:05+00:00.
+Generated 2026-08-26T12:38:38+00:00 from a selection made 2026-08-26T12:38:08+00:00.
 
 | Component | Base | Applied | Skipped | Excluded |
 | --- | --- | ---: | ---: | ---: |
-| [angr](https://github.com/angr/angr) | [829ea98f57](https://github.com/angr/angr/commit/829ea98f577ac04d9cd3927ddc868713a5b0a1ab) | 64 (17 resolved) | 8 | 22 |
+| [angr](https://github.com/angr/angr) | [829ea98f57](https://github.com/angr/angr/commit/829ea98f577ac04d9cd3927ddc868713a5b0a1ab) | 65 (17 resolved) | 9 | 22 |
 | [archinfo](https://github.com/angr/archinfo) | [bf85c7e47b](https://github.com/angr/archinfo/commit/bf85c7e47bb469878c564480e28c677abbe35acc) | 4 | 0 | 1 |
 | [claripy](https://github.com/angr/claripy) | [6ff4486278](https://github.com/angr/claripy/commit/6ff4486278af191304ae8188ed6faa643cf43087) | 1 | 0 | 1 |
-| [cle](https://github.com/angr/cle) | [46a37333f4](https://github.com/angr/cle/commit/46a37333f4f59b0facf8774ee743ebc4cc074e9b) | 36 (6 resolved) | 7 | 9 |
+| [cle](https://github.com/angr/cle) | [46a37333f4](https://github.com/angr/cle/commit/46a37333f4f59b0facf8774ee743ebc4cc074e9b) | 37 (6 resolved) | 7 | 8 |
 | [pypcode](https://github.com/angr/pypcode) | [559aacdc9d](https://github.com/angr/pypcode/commit/559aacdc9d363fd19477d9daa40721279cd99248) | 2 | 0 | 1 |
 | [pyvex](https://github.com/angr/pyvex) | [bdd5441035](https://github.com/angr/pyvex/commit/bdd5441035e02920eaa72c1c3cf9a4f0d572104d) | 8 (5 resolved) | 0 | 0 |
 
@@ -118,6 +118,7 @@ Applied:
 - [#6954](https://github.com/angr/angr/pull/6954) Preserve loop-header variables during expression folding
 - [#6955](https://github.com/angr/angr/pull/6955) Decompiler: Preserve dereference precedence in member access -- resolved: union merge of tests: tests/analyses/decompiler/test_structured_codegen.py
 - [#6957](https://github.com/angr/angr/pull/6957) CFGFast: Recognize i686 MinGW stack probes
+- [#6958](https://github.com/angr/angr/pull/6958) Decompiler: resolve chained AIL merge graph splits
 
 Skipped at assembly:
 - [#6817](https://github.com/angr/angr/pull/6817) Pcode: Disassemble lazily and match VEX's block cache size. -- conflicts with the applied set: angr/engines/pcode/lifter.py, tests/engines/pcode/test_pcode.py
@@ -128,6 +129,7 @@ Skipped at assembly:
 - [#6933](https://github.com/angr/angr/pull/6933) SimState: Register a plugin before initializing it -- conflicts with the applied set: angr/sim_state.py
 - [#6936](https://github.com/angr/angr/pull/6936) Make function graphs observable and owned -- conflicts with the applied set: angr/knowledge_plugins/functions/soot_function.py
 - [#6956](https://github.com/angr/angr/pull/6956) Decompiler: Recover variadic arguments through gettext -- conflicts in tests could not be union-merged: tests/analyses/decompiler/test_variadic_callsite_args.py
+- [#6959](https://github.com/angr/angr/pull/6959) Decompiler: handle shift counts wider than shifted values -- conflicts in tests could not be union-merged: tests/analyses/decompiler/test_condition_processor.py
 
 Excluded by selection:
 - [#6658](https://github.com/angr/angr/pull/6658) Add first-class WebAssembly runtime support -- conflicts with the upstream default branch
@@ -149,9 +151,9 @@ Excluded by selection:
 - [#6904](https://github.com/angr/angr/pull/6904) Decompiler: Distinguish retries from structuring updates -- checks not green: docs/readthedocs.org:angr is FAILURE
 - [#6949](https://github.com/angr/angr/pull/6949) SootClassHierarchy: Answer the subclass question for an interface -- checks not green: codecov/patch concluded FAILURE
 - [#6952](https://github.com/angr/angr/pull/6952) Decompiler: rebind breaks and continues that no longer reach their target -- BreakRebinder rewrites switch-end breaks into a backwards goto; fails #6938's test_goto_leaving_a_switch_from_inside_a_loop_stays_a_goto; master+#6952 alone reproduces
-- [#6958](https://github.com/angr/angr/pull/6958) Decompiler: resolve chained AIL merge graph splits -- checks not green: Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, ci / Test (0) is IN_PROGRESS, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (3) is IN_PROGRESS, ci / Test (4) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS, ci / Test (6) is IN_PROGRESS, ci / Test (7) is IN_PROGRESS, ci / Test (8) is IN_PROGRESS, ci / Test (9) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING
-- [#6959](https://github.com/angr/angr/pull/6959) Decompiler: handle shift counts wider than shifted values -- checks not green: ci / Build is IN_PROGRESS, Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, Test installation (windows-2025, py3.12) is IN_PROGRESS, Test installation (macos-26, py3.12) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING
-- [#6960](https://github.com/angr/angr/pull/6960) CFGBase: Do not let a zero-size node anchor a normalization group -- checks not green: ci / Build is IN_PROGRESS, Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, Test installation (windows-2025, py3.12) is IN_PROGRESS, Test installation (macos-26, py3.12) is IN_PROGRESS, Test installation (ubuntu-24.04, py3.14) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING
+- [#6960](https://github.com/angr/angr/pull/6960) CFGBase: Do not let a zero-size node anchor a normalization group -- checks not green: ci / Typecheck concluded FAILURE
+- [#6961](https://github.com/angr/angr/pull/6961) AIL: Carry a gymrat Dirty statement through with its memory effects unset -- checks not green: Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (10) is IN_PROGRESS, ci / Test (0) is IN_PROGRESS, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (3) is IN_PROGRESS, ci / Test (4) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS
+- [#6962](https://github.com/angr/angr/pull/6962) Decompiler: Respect the updated entry node address in DeadblockRemover -- checks not green: ci / Typecheck concluded FAILURE, Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, ci / Test (0) is IN_PROGRESS, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (3) is IN_PROGRESS, ci / Test (4) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS, ci / Test (8) is IN_PROGRESS
 
 
 ### archinfo
@@ -209,6 +211,7 @@ Applied:
 - [#776](https://github.com/angr/cle/pull/776) Place the main binary at 0x400000 only when that space is free -- resolved: union merge of tests: tests/test_rebase.py
 - [#780](https://github.com/angr/cle/pull/780) Load a Mach-O MH_EXECUTE that a container backend owns
 - [#783](https://github.com/angr/cle/pull/783) Load a bare DEX
+- [#784](https://github.com/angr/cle/pull/784) ELF: Read EF_ARM_BE8 -- tolerated: Test windows-2022 concluded CANCELLED, Test macos-15 concluded FAILURE
 - [#785](https://github.com/angr/cle/pull/785) ELF: Size imported objects from DWARF declarations -- resolved: union merge of tests: tests/test_extern.py
 - [#786](https://github.com/angr/cle/pull/786) Use SimData types for untyped externs -- resolved: union merge of tests: tests/test_extern.py
 - [#787](https://github.com/angr/cle/pull/787) Load a Mach-O relocatable object
@@ -231,8 +234,7 @@ Excluded by selection:
 - [#758](https://github.com/angr/cle/pull/758) ELFCore: Keep the permissions of the mappings it turns into blobs -- depends on angr/angr#6864 which is excluded: checks not green: Test Results concluded FAILURE
 - [#765](https://github.com/angr/cle/pull/765) Keep a rebased object out of the null page -- moves a rebased object above the image instead of to 0; fails #730's test_overlap.py::test_outer_object_does_not_move_rebased_objects and #721's test_tls_resiliency.py::test_tls_24bit_arch, which assert the old placement
 - [#771](https://github.com/angr/cle/pull/771) ELF: Search /usr/lib/debug for a separate debug file -- draft
-- [#784](https://github.com/angr/cle/pull/784) ELF: Read EF_ARM_BE8 -- checks not green: Test windows-2022 concluded CANCELLED, Test macos-15 concluded FAILURE
-- [#789](https://github.com/angr/cle/pull/789) PE: Separate GNU EH-frame hints from unwind entries -- checks not green: ci / Test (1) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS, Test windows-2022 concluded CANCELLED, Test macos-15 concluded FAILURE
+- [#789](https://github.com/angr/cle/pull/789) PE: Separate GNU EH-frame hints from unwind entries -- checks not green: ci / Test (1) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS
 - [#791](https://github.com/angr/cle/pull/791) ELF: Take the word size from the machine, not the container -- resolves x32 (ELFCLASS32/EM_X86_64) objects to AMD64 so ELFCore.__parse_auxv misreads the x32 auxv note; fails #734's test_prstatus_abi_mismatch
 
 

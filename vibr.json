@@ -1,13 +1,13 @@
 {
  "schema": 1,
- "generated_at": "2026-08-26T12:06:05+00:00",
- "selection_generated_at": "2026-08-26T12:06:05+00:00",
+ "generated_at": "2026-08-26T12:38:38+00:00",
+ "selection_generated_at": "2026-08-26T12:38:08+00:00",
  "components": {
   "angr": {
    "upstream": "https://github.com/angr/angr",
    "default_branch": "master",
    "base": "829ea98f577ac04d9cd3927ddc868713a5b0a1ab",
-   "head": "87152d6345b28b7afe30f1ef301978b3f760b3a4",
+   "head": "b16d61c4afb1a915524fd614d7bd77919b578727",
    "applied": [
     {
      "number": 6655,
@@ -409,6 +409,12 @@
      "title": "CFGFast: Recognize i686 MinGW stack probes",
      "url": "https://github.com/angr/angr/pull/6957",
      "head_sha": "a302f63430630aa8306cbb47a360f939bacc34f3"
+    },
+    {
+     "number": 6958,
+     "title": "Decompiler: resolve chained AIL merge graph splits",
+     "url": "https://github.com/angr/angr/pull/6958",
+     "head_sha": "379d6d783d052a67e566b883fc3829c520cdb6cb"
     }
    ],
    "skipped": [
@@ -459,6 +465,12 @@
      "title": "Decompiler: Recover variadic arguments through gettext",
      "url": "https://github.com/angr/angr/pull/6956",
      "reason": "conflicts in tests could not be union-merged: tests/analyses/decompiler/test_variadic_callsite_args.py"
+    },
+    {
+     "number": 6959,
+     "title": "Decompiler: handle shift counts wider than shifted values",
+     "url": "https://github.com/angr/angr/pull/6959",
+     "reason": "conflicts in tests could not be union-merged: tests/analyses/decompiler/test_condition_processor.py"
     }
    ],
    "excluded": [
@@ -605,24 +617,24 @@
      "depends_on": []
     },
     {
-     "number": 6958,
-     "title": "Decompiler: resolve chained AIL merge graph splits",
-     "url": "https://github.com/angr/angr/pull/6958",
-     "reason": "checks not green: Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, ci / Test (0) is IN_PROGRESS, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (3) is IN_PROGRESS, ci / Test (4) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS, ci / Test (6) is IN_PROGRESS, ci / Test (7) is IN_PROGRESS, ci / Test (8) is IN_PROGRESS, ci / Test (9) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING",
-     "depends_on": []
-    },
-    {
-     "number": 6959,
-     "title": "Decompiler: handle shift counts wider than shifted values",
-     "url": "https://github.com/angr/angr/pull/6959",
-     "reason": "checks not green: ci / Build is IN_PROGRESS, Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, Test installation (windows-2025, py3.12) is IN_PROGRESS, Test installation (macos-26, py3.12) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING",
-     "depends_on": []
-    },
-    {
      "number": 6960,
      "title": "CFGBase: Do not let a zero-size node anchor a normalization group",
      "url": "https://github.com/angr/angr/pull/6960",
-     "reason": "checks not green: ci / Build is IN_PROGRESS, Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, Test installation (windows-2025, py3.12) is IN_PROGRESS, Test installation (macos-26, py3.12) is IN_PROGRESS, Test installation (ubuntu-24.04, py3.14) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING",
+     "reason": "checks not green: ci / Typecheck concluded FAILURE",
+     "depends_on": []
+    },
+    {
+     "number": 6961,
+     "title": "AIL: Carry a gymrat Dirty statement through with its memory effects unset",
+     "url": "https://github.com/angr/angr/pull/6961",
+     "reason": "checks not green: Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (10) is IN_PROGRESS, ci / Test (0) is IN_PROGRESS, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (3) is IN_PROGRESS, ci / Test (4) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS",
+     "depends_on": []
+    },
+    {
+     "number": 6962,
+     "title": "Decompiler: Respect the updated entry node address in DeadblockRemover",
+     "url": "https://github.com/angr/angr/pull/6962",
+     "reason": "checks not green: ci / Typecheck concluded FAILURE, Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, ci / Test (0) is IN_PROGRESS, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (3) is IN_PROGRESS, ci / Test (4) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS, ci / Test (8) is IN_PROGRESS",
      "depends_on": []
     }
    ]
@@ -697,7 +709,7 @@
    "upstream": "https://github.com/angr/cle",
    "default_branch": "master",
    "base": "46a37333f4f59b0facf8774ee743ebc4cc074e9b",
-   "head": "d72e70a0bdffa2aab8f67e03e671734804ce8f47",
+   "head": "c1887dd0ed32c31ae46365bd627aeb3c5c1e5056",
    "applied": [
     {
      "number": 714,
@@ -889,6 +901,16 @@
      "head_sha": "e5d9d25e58305a1adf9cb55e3af540e1a4d8026b"
     },
     {
+     "number": 784,
+     "title": "ELF: Read EF_ARM_BE8",
+     "url": "https://github.com/angr/cle/pull/784",
+     "head_sha": "65d7f5d6e4ee9a1c17e6343a95272b42e039eb43",
+     "tolerated_checks": [
+      "Test windows-2022 concluded CANCELLED",
+      "Test macos-15 concluded FAILURE"
+     ]
+    },
+    {
      "number": 785,
      "title": "ELF: Size imported objects from DWARF declarations",
      "url": "https://github.com/angr/cle/pull/785",
@@ -1021,20 +1043,10 @@
      "depends_on": []
     },
     {
-     "number": 784,
-     "title": "ELF: Read EF_ARM_BE8",
-     "url": "https://github.com/angr/cle/pull/784",
-     "reason": "checks not green: Test windows-2022 concluded CANCELLED, Test macos-15 concluded FAILURE",
-     "depends_on": [
-      "angr/archinfo#373",
-      "angr/pyvex#565"
-     ]
-    },
-    {
      "number": 789,
      "title": "PE: Separate GNU EH-frame hints from unwind entries",
      "url": "https://github.com/angr/cle/pull/789",
-     "reason": "checks not green: ci / Test (1) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS, Test windows-2022 concluded CANCELLED, Test macos-15 concluded FAILURE",
+     "reason": "checks not green: ci / Test (1) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS",
      "depends_on": [
       "angr/angr#6948"
      ]
