@@ -1,13 +1,13 @@
 {
  "schema": 1,
- "generated_at": "2026-08-26T12:38:38+00:00",
- "selection_generated_at": "2026-08-26T12:38:08+00:00",
+ "generated_at": "2026-08-26T14:01:31+00:00",
+ "selection_generated_at": "2026-08-26T14:01:31+00:00",
  "components": {
   "angr": {
    "upstream": "https://github.com/angr/angr",
    "default_branch": "master",
    "base": "829ea98f577ac04d9cd3927ddc868713a5b0a1ab",
-   "head": "b16d61c4afb1a915524fd614d7bd77919b578727",
+   "head": "a6eed08154f6ea82b68f81a3b5d62c0592b0824b",
    "applied": [
     {
      "number": 6655,
@@ -196,12 +196,6 @@
      "head_sha": "218d0ce0889e210fb74a00822bee5701e08cf947"
     },
     {
-     "number": 6848,
-     "title": "Decompiler: Reset Thumb IT state at function entry",
-     "url": "https://github.com/angr/angr/pull/6848",
-     "head_sha": "0b016584495ca0379052dcf2a05ff870f9c3581e"
-    },
-    {
      "number": 6850,
      "title": "Decompiler: Preserve indirect store addresses across type casts",
      "url": "https://github.com/angr/angr/pull/6850",
@@ -374,6 +368,16 @@
      "head_sha": "556f7365622634563a5b174cddb3b3003ca82824"
     },
     {
+     "number": 6949,
+     "title": "SootClassHierarchy: Answer the subclass question for an interface",
+     "url": "https://github.com/angr/angr/pull/6949",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast_soot.py",
+     "head_sha": "00c44061d042e1350f56398c823b1ce406d30366",
+     "tolerated_checks": [
+      "codecov/patch concluded FAILURE"
+     ]
+    },
+    {
      "number": 6950,
      "title": "Recover semantic main prototypes from libc startup",
      "url": "https://github.com/angr/angr/pull/6950",
@@ -415,6 +419,13 @@
      "title": "Decompiler: resolve chained AIL merge graph splits",
      "url": "https://github.com/angr/angr/pull/6958",
      "head_sha": "379d6d783d052a67e566b883fc3829c520cdb6cb"
+    },
+    {
+     "number": 6961,
+     "title": "AIL: Carry a gymrat Dirty statement through with its memory effects unset",
+     "url": "https://github.com/angr/angr/pull/6961",
+     "resolution": "union merge of tests: tests/ailment/test_irsb.py",
+     "head_sha": "8bc951d307b1f3994d3cff2ffe5c41b01f6dae63"
     }
    ],
    "skipped": [
@@ -513,7 +524,7 @@
      "number": 6795,
      "title": "SimCGC: Keep the CGC defaults when a dump omits its optional backers.",
      "url": "https://github.com/angr/angr/pull/6795",
-     "reason": "checks not green: Test Results concluded FAILURE, codecov/patch concluded FAILURE",
+     "reason": "checks not green: Test Results concluded FAILURE",
      "depends_on": [
       "angr/cle#718"
      ]
@@ -554,6 +565,13 @@
      "depends_on": []
     },
     {
+     "number": 6848,
+     "title": "Decompiler: Reset Thumb IT state at function entry",
+     "url": "https://github.com/angr/angr/pull/6848",
+     "reason": "checks not green: Report is QUEUED, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS",
+     "depends_on": []
+    },
+    {
      "number": 6853,
      "title": "Decompiler: Preserve virtual-variable bindings across index collisions",
      "url": "https://github.com/angr/angr/pull/6853",
@@ -571,7 +589,7 @@
      "number": 6861,
      "title": "CFGFast: Use a Mach-O function-start table for what it does not otherwise find",
      "url": "https://github.com/angr/angr/pull/6861",
-     "reason": "checks not green: Test Results concluded FAILURE, codecov/patch concluded FAILURE, codecov/project concluded FAILURE",
+     "reason": "checks not green: Test Results concluded FAILURE",
      "depends_on": [
       "angr/cle#754"
      ]
@@ -603,13 +621,6 @@
      "depends_on": []
     },
     {
-     "number": 6949,
-     "title": "SootClassHierarchy: Answer the subclass question for an interface",
-     "url": "https://github.com/angr/angr/pull/6949",
-     "reason": "checks not green: codecov/patch concluded FAILURE",
-     "depends_on": []
-    },
-    {
      "number": 6952,
      "title": "Decompiler: rebind breaks and continues that no longer reach their target",
      "url": "https://github.com/angr/angr/pull/6952",
@@ -624,17 +635,31 @@
      "depends_on": []
     },
     {
-     "number": 6961,
-     "title": "AIL: Carry a gymrat Dirty statement through with its memory effects unset",
-     "url": "https://github.com/angr/angr/pull/6961",
-     "reason": "checks not green: Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (10) is IN_PROGRESS, ci / Test (0) is IN_PROGRESS, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (3) is IN_PROGRESS, ci / Test (4) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS",
-     "depends_on": []
-    },
-    {
      "number": 6962,
      "title": "Decompiler: Respect the updated entry node address in DeadblockRemover",
      "url": "https://github.com/angr/angr/pull/6962",
-     "reason": "checks not green: ci / Typecheck concluded FAILURE, Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, ci / Test (0) is IN_PROGRESS, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (3) is IN_PROGRESS, ci / Test (4) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS, ci / Test (8) is IN_PROGRESS",
+     "reason": "checks not green: ci / Typecheck concluded FAILURE",
+     "depends_on": []
+    },
+    {
+     "number": 6963,
+     "title": "Decompiler: rebuild duplication reverter jump targets",
+     "url": "https://github.com/angr/angr/pull/6963",
+     "reason": "checks not green: ci / Typecheck is IN_PROGRESS, Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, ci / Test (0) is IN_PROGRESS, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (3) is IN_PROGRESS, ci / Test (4) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS, ci / Test (6) is IN_PROGRESS, ci / Test (7) is IN_PROGRESS, ci / Test (8) is IN_PROGRESS, ci / Test (9) is IN_PROGRESS, ci / Decompiler Snapshot Testing (0) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING",
+     "depends_on": []
+    },
+    {
+     "number": 6964,
+     "title": "SimType: check the alignment sentinel before converting it to bits",
+     "url": "https://github.com/angr/angr/pull/6964",
+     "reason": "checks not green: ci / Build is IN_PROGRESS, Build is IN_PROGRESS, Test installation (ubuntu-24.04, py3.14) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING",
+     "depends_on": []
+    },
+    {
+     "number": 6965,
+     "title": "CCodeGen: do not descend into a struct kernel that has no fields",
+     "url": "https://github.com/angr/angr/pull/6965",
+     "reason": "checks not green: ci / Build is IN_PROGRESS, Build is IN_PROGRESS, Test Rust packages is IN_PROGRESS, Test installation (ubuntu-24.04, py3.14) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING",
      "depends_on": []
     }
    ]
@@ -700,7 +725,7 @@
      "number": 742,
      "title": "Answer singlevalued and multivalued when no backend can bound cardinality",
      "url": "https://github.com/angr/claripy/pull/742",
-     "reason": "checks not green: angr Ecosystem Test / Lint concluded FAILURE, angr Ecosystem Test / Typecheck concluded FAILURE",
+     "reason": "checks not green: angr Ecosystem Test / Typecheck concluded FAILURE",
      "depends_on": []
     }
    ]
@@ -986,6 +1011,12 @@
      "title": "Make loader memory reads side-effect free",
      "url": "https://github.com/angr/cle/pull/788",
      "reason": "conflicts with the applied set: cle/memory.py, tests/test_clemory.py"
+    },
+    {
+     "number": 789,
+     "title": "PE: Separate GNU EH-frame hints from unwind entries",
+     "url": "https://github.com/angr/cle/pull/789",
+     "reason": "conflicts with the applied set: cle/backends/pe/pe.py"
     }
    ],
    "excluded": [
@@ -1005,7 +1036,7 @@
      "number": 718,
      "title": "Fix Clemory backer removal and the BackedCGC backend",
      "url": "https://github.com/angr/cle/pull/718",
-     "reason": "depends on angr/angr#6795 which is excluded: checks not green: Test Results concluded FAILURE, codecov/patch concluded FAILURE",
+     "reason": "depends on angr/angr#6795 which is excluded: checks not green: Test Results concluded FAILURE",
      "depends_on": [
       "angr/angr#6795"
      ]
@@ -1014,7 +1045,7 @@
      "number": 754,
      "title": "Mach-O: Register the LC_FUNCTION_STARTS entries as function hints",
      "url": "https://github.com/angr/cle/pull/754",
-     "reason": "depends on angr/angr#6861 which is excluded: checks not green: Test Results concluded FAILURE, codecov/patch concluded FAILURE, codecov/project concluded FAILURE",
+     "reason": "depends on angr/angr#6861 which is excluded: checks not green: Test Results concluded FAILURE",
      "depends_on": [
       "angr/angr#6861"
      ]
@@ -1041,15 +1072,6 @@
      "url": "https://github.com/angr/cle/pull/771",
      "reason": "draft",
      "depends_on": []
-    },
-    {
-     "number": 789,
-     "title": "PE: Separate GNU EH-frame hints from unwind entries",
-     "url": "https://github.com/angr/cle/pull/789",
-     "reason": "checks not green: ci / Test (1) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS",
-     "depends_on": [
-      "angr/angr#6948"
-     ]
     },
     {
      "number": 791,

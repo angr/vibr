@@ -12,6 +12,7 @@ from pyvex.enums import irop_enums_to_ints
 
 import angr
 from angr import ailment
+from angr.ailment.expression import DirtyExpression
 from angr.engines.vex.claripy import irop
 from angr.rustylib.ailment import RoundingMode, VEXIRSBConverter, _vexop_debug
 
@@ -48,6 +49,32 @@ class TestIrsb(unittest.TestCase):
             assert block.statements
             for stmt in block.statements:
                 assert self.high_block_addr <= stmt.tags["ins_addr"] < self.high_block_addr + irsb.size
+    def test_convert_gymrat_dirty_leaves_memory_effects_unset(self):
+        # libVEX cannot decode iretq, so pyvex falls back to its gymrat lifter, which
+        # builds the Dirty statement with every memory-effect field unset. Those fields
+        # are optional in the AIL model, so the converter has to carry the Nones through
+        # instead of demanding a string.
+        arch = archinfo.arch_from_id("AMD64")
+        irsb = pyvex.lift(b"\x48\xcf", 0x400000, arch)
+        dirty = [stmt for stmt in irsb.statements if isinstance(stmt, pyvex.stmt.Dirty)]
+        assert len(dirty) == 1
+        assert dirty[0].mFx is None
+        assert dirty[0].mSize is None
+
+        manager = ailment.Manager(arch=arch)
+        ablock = ailment.IRSBConverter.convert(irsb, manager)
+        assert ablock is not None
+
+        converted = [
+            expr
+            for stmt in ablock.statements
+            for expr in (getattr(stmt, "src", None), getattr(stmt, "dst", None))
+            if isinstance(expr, DirtyExpression)
+        ]
+        assert len(converted) == 1
+        assert converted[0].callee == "amd64g_dirtyhelper_IRETQ"
+        assert converted[0].mfx is None
+        assert converted[0].msize is None
 
     def test_convert_from_pcode_irsb(self):
         arch = archinfo.arch_from_id("AMD64")
