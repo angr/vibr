@@ -5,6 +5,7 @@ from __future__ import annotations
 __package__ = __package__ or "tests.analyses.decompiler"  # pylint:disable=redefined-builtin
 
 import unittest
+from typing import Any, cast
 
 import angr
 from angr.ailment import Expr, Manager, Stmt
@@ -21,6 +22,28 @@ def _make_codegen() -> CStructuredCodeGenerator:
     codegen = proj.analyses.Decompiler(cfg.functions[0], cfg=cfg).codegen
     assert isinstance(codegen, CStructuredCodeGenerator)
     return codegen
+from angr.ailment import Block, Expr, Stmt
+from angr.analyses.decompiler.jump_target_collector import JumpTargetCollector
+from angr.analyses.decompiler.redundant_label_remover import RedundantLabelRemover
+from angr.analyses.decompiler.structured_codegen.c import CGoto, CStructuredCodeGenerator
+from angr.analyses.decompiler.structured_codegen.rust import RustGoto, RustStructuredCodeGenerator
+from angr.analyses.decompiler.structurer_nodes import SequenceNode
+
+
+class _ConditionalJumpCodegenHarness:
+    cstyle_ifs = True
+
+    @staticmethod
+    def next_ident(name):
+        return name
+
+    @staticmethod
+    def next_node_idx():
+        return 0
+
+    @staticmethod
+    def _handle(node, **_kwargs):
+        return node
 
 
 class TestConvertRendering(unittest.TestCase):
@@ -94,6 +117,89 @@ class TestStoreRendering(unittest.TestCase):
 
         assert direct_rendered == "*((unsigned int *)&storage) = 287454020;\n"
         assert pointer_rendered == "*((unsigned int *)iter) = 287454020;\n"
+class TestConditionalJumpTargetIdentity(unittest.TestCase):
+    def setUp(self):
+        self.stmt = Stmt.ConditionalJump(
+            0,
+            Expr.Const(1, 1, 1),
+            Expr.Const(2, 0x2000, 64),
+            Expr.Const(3, 0x2000, 64),
+            true_target_idx=4,
+            false_target_idx=5,
+        )
+
+    def test_jump_target_collector_preserves_branch_indices(self):
+        block = Block(0x1000, 4, statements=[self.stmt], idx=3)
+
+        self.assertEqual(JumpTargetCollector(block).jump_targets, {(0x2000, 4), (0x2000, 5)})
+
+    def test_redundant_labels_retarget_conditional_address_and_idx(self):
+        head = Block(
+            0x2000,
+            4,
+            statements=[Stmt.Label(10, "LABEL_2000__1", ins_addr=0x2000, block_idx=1)],
+            idx=1,
+        )
+        indexed = Block(
+            0x3000,
+            4,
+            statements=[Stmt.Label(11, "LABEL_3000__2", ins_addr=0x3000, block_idx=2)],
+            idx=2,
+        )
+        unindexed = Block(
+            0x3000,
+            4,
+            statements=[Stmt.Label(12, "LABEL_3000", ins_addr=0x3000, block_idx=None)],
+            idx=None,
+        )
+        source = Block(
+            0x1000,
+            4,
+            statements=[
+                Stmt.ConditionalJump(
+                    13,
+                    Expr.Const(4, 1, 1),
+                    Expr.Const(5, 0x3000, 64),
+                    Expr.Const(6, 0x3000, 64),
+                    true_target_idx=2,
+                    false_target_idx=None,
+                )
+            ],
+            idx=0,
+        )
+        sequence = SequenceNode(0x2000, [head, indexed, unindexed, source])
+
+        RedundantLabelRemover(sequence, {(0x3000, 2), (0x3000, None)})
+
+        updated = cast(Any, source.statements[0])
+        self.assertEqual((updated.true_target.value, updated.true_target_idx), (0x2000, 1))
+        self.assertEqual((updated.false_target.value, updated.false_target_idx), (0x2000, 1))
+        self.assertEqual(JumpTargetCollector(source).jump_targets, {(0x2000, 1)})
+
+        c_handler = cast(Any, CStructuredCodeGenerator._handle_Stmt_ConditionalJump)
+        rendered = c_handler(_ConditionalJumpCodegenHarness(), updated)
+        self.assertEqual(rendered.condition_and_nodes[0][1].target_idx, 1)
+        self.assertEqual(rendered.else_node.target_idx, 1)
+
+    def test_c_codegen_preserves_branch_indices(self):
+        handler = cast(Any, CStructuredCodeGenerator._handle_Stmt_ConditionalJump)
+        result = handler(_ConditionalJumpCodegenHarness(), self.stmt)
+
+        true_goto = result.condition_and_nodes[0][1]
+        self.assertIsInstance(true_goto, CGoto)
+        self.assertIsInstance(result.else_node, CGoto)
+        self.assertEqual(true_goto.target_idx, 4)
+        self.assertEqual(result.else_node.target_idx, 5)
+
+    def test_rust_codegen_preserves_branch_indices(self):
+        handler = cast(Any, RustStructuredCodeGenerator._handle_Stmt_ConditionalJump)
+        result = handler(_ConditionalJumpCodegenHarness(), self.stmt)
+
+        true_goto = result.condition_and_nodes[0][1]
+        self.assertIsInstance(true_goto, RustGoto)
+        self.assertIsInstance(result.else_node, RustGoto)
+        self.assertEqual(true_goto.target_idx, 4)
+        self.assertEqual(result.else_node.target_idx, 5)
 
 
 if __name__ == "__main__":

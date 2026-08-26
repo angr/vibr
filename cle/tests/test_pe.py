@@ -383,6 +383,13 @@ class TestPEBackend(unittest.TestCase):
         assert isinstance(ld.main_object, cle.PE)
         assert ld.main_object.arch.name == "AMD64"
         assert ld.main_object.is_dotnet
+    def test_mapped_image_covers_max_addr(self):
+        exe = os.path.join(TEST_BASE, "tests", "i386", "simple_windows.exe")
+        ld = cle.Loader(exe, auto_load_libs=False)
+        obj = ld.main_object
+
+        mapped_size = obj.max_addr - obj.min_addr + 1
+        assert len(ld.memory.load(obj.min_addr, mapped_size)) == mapped_size
 
 
 if __name__ == "__main__":

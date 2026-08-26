@@ -40,6 +40,10 @@ __all__ = ("Loader",)
 
 log = logging.getLogger(name=__name__)
 
+# The lowest page of the address space. The loader hands it out only when there is nowhere else,
+# because a null or uninitialized pointer in the target reads as an address inside it.
+NULL_PAGE_SIZE = 0x1000
+
 if TYPE_CHECKING:
     from .backends import Region, Section, Segment
     from .backends.relocation import Relocation
@@ -313,14 +317,14 @@ class Loader:
         3) All requests for size are passed down the chain until they reach an object which has the space to service
             it or an object which has not yet been mapped. If all objects have been mapped and are full, a new extern
             object is mapped with a fixed size.
+
+        The architecture-dependent default capacity also bounds individual optional metadata hints, preventing one
+        hint from forcing a larger-than-normal extern reservation.
+        The bound applies per hint; aggregate extern allocation may still grow beyond this capacity when many symbols
+        are allocated.
         """
         if self._extern_object is None:
-            if self.main_object.arch.bits < 32:
-                extern_size = 0x200
-            elif self.main_object.arch.bits == 32:
-                extern_size = 0x8000
-            else:
-                extern_size = 0x80000
+            extern_size = ExternObject.default_map_size(self.main_object.arch)
             self._extern_object = ExternObject(self, map_size=extern_size)
             self._internal_load(self._extern_object)
         return self._extern_object
@@ -1032,14 +1036,14 @@ class Loader:
                 base_addr = obj._custom_base_addr
             elif obj.linked_base and self._is_range_free(obj.linked_base, obj_size):
                 base_addr = obj.linked_base
-            elif not obj.is_main_bin:
-                base_addr = self._find_safe_rebase_addr(obj_size)
-            else:
+            elif obj.is_main_bin and self._is_range_free(0x400000, obj_size):
                 log.debug(
                     "The main binary is a position-independent executable. "
                     "It is being loaded with a base address of 0x400000."
                 )
                 base_addr = 0x400000
+            else:
+                base_addr = self._find_safe_rebase_addr(obj_size)
 
             obj.rebase(base_addr)
         else:
@@ -1077,23 +1081,26 @@ class Loader:
         """
         # this assumes that self.main_object exists, which should... definitely be safe
         limit = 2**self.main_object.arch.bits
+        above_image = self.main_object.max_addr + 1
         if self.main_object.arch.bits < 32 or self.main_object.max_addr >= 2 ** (self.main_object.arch.bits - 1):
-            # HACK: On small arches, we should be more aggressive in packing stuff in. An image
-            # reaching into the top half of the address space leaves its free space underneath it.
-            start = 0
+            # A small address space, or an image that reaches into the top half of one, may have
+            # its free space underneath the image. Take that space once the space above the image
+            # is exhausted, and the null page only when there is nothing else at all.
+            starts = (above_image, NULL_PAGE_SIZE, 0)
         else:
-            start = self.main_object.max_addr + 1
+            starts = (above_image,)
 
         # The granularity is a preference, not a constraint: it costs up to one granule per object,
         # which a small address space runs out of long before the space itself is full.
         alignments = [self._rebase_granularity]
         alignments += [a for a in (0x1000, 1) if a < self._rebase_granularity]
 
-        for alignment in alignments:
-            for gap_start, gap_end in self._free_gaps(start, limit):
-                addr = ALIGN_UP(gap_start, alignment)
-                if addr + size <= gap_end:
-                    return addr
+        for start in starts:
+            for alignment in alignments:
+                for gap_start, gap_end in self._free_gaps(start, limit):
+                    addr = ALIGN_UP(gap_start, alignment)
+                    if addr + size <= gap_end:
+                        return addr
 
         raise CLEOperationError("Ran out of room in address space")
 

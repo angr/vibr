@@ -40,16 +40,16 @@ Test fixtures (`angr/binaries`) are never included.
 ## Contents
 
 <!-- vibr:begin -->
-Generated 2026-08-26T09:09:06+00:00 from a selection made 2026-08-26T09:02:28+00:00.
+Generated 2026-08-26T09:17:32+00:00 from a selection made 2026-08-26T09:02:28+00:00.
 
 | Component | Base | Applied | Skipped | Excluded |
 | --- | --- | ---: | ---: | ---: |
-| [angr](https://github.com/angr/angr) | [829ea98f57](https://github.com/angr/angr/commit/829ea98f577ac04d9cd3927ddc868713a5b0a1ab) | 46 | 22 | 20 |
+| [angr](https://github.com/angr/angr) | [829ea98f57](https://github.com/angr/angr/commit/829ea98f577ac04d9cd3927ddc868713a5b0a1ab) | 61 (17 resolved) | 7 | 20 |
 | [archinfo](https://github.com/angr/archinfo) | [bf85c7e47b](https://github.com/angr/archinfo/commit/bf85c7e47bb469878c564480e28c677abbe35acc) | 4 | 0 | 1 |
 | [claripy](https://github.com/angr/claripy) | [6ff4486278](https://github.com/angr/claripy/commit/6ff4486278af191304ae8188ed6faa643cf43087) | 1 | 0 | 1 |
-| [cle](https://github.com/angr/cle) | [46a37333f4](https://github.com/angr/cle/commit/46a37333f4f59b0facf8774ee743ebc4cc074e9b) | 30 | 14 | 7 |
+| [cle](https://github.com/angr/cle) | [46a37333f4](https://github.com/angr/cle/commit/46a37333f4f59b0facf8774ee743ebc4cc074e9b) | 37 (7 resolved) | 7 | 7 |
 | [pypcode](https://github.com/angr/pypcode) | [559aacdc9d](https://github.com/angr/pypcode/commit/559aacdc9d363fd19477d9daa40721279cd99248) | 2 | 0 | 1 |
-| [pyvex](https://github.com/angr/pyvex) | [bdd5441035](https://github.com/angr/pyvex/commit/bdd5441035e02920eaa72c1c3cf9a4f0d572104d) | 3 | 5 | 0 |
+| [pyvex](https://github.com/angr/pyvex) | [bdd5441035](https://github.com/angr/pyvex/commit/bdd5441035e02920eaa72c1c3cf9a4f0d572104d) | 8 (5 resolved) | 0 | 0 |
 
 ### angr
 
@@ -70,20 +70,33 @@ Applied:
 - [#6807](https://github.com/angr/angr/pull/6807) SimState: Fix unbounded recursion when creating a state on PIC-24 and dsPIC
 - [#6808](https://github.com/angr/angr/pull/6808) SpillingCFG: Index the nodes that an edge inserts into the graph
 - [#6809](https://github.com/angr/angr/pull/6809) CFGFast: Stop aborting when a pre-executed block ends in a failure exit
+- [#6810](https://github.com/angr/angr/pull/6810) CFGFast: Do not record a call return site in an unmapped alignment hole -- resolved: union merge of tests: tests/analyses/cfg/test_cfgfast.py
 - [#6813](https://github.com/angr/angr/pull/6813) ArmElfFastResolver: Stop aborting CFGFast on an add of two registers
+- [#6814](https://github.com/angr/angr/pull/6814) PcodeLifter: Give each project its own Sleigh context -- resolved: union merge of tests: tests/engines/pcode/test_pcode.py
 - [#6815](https://github.com/angr/angr/pull/6815) Decompiler: Structure every overlay child before its parent
-- [#6816](https://github.com/angr/angr/pull/6816) PcodeLifter: Stop a block from running past the bytes it was given
+- [#6816](https://github.com/angr/angr/pull/6816) PcodeLifter: Stop a block from running past the bytes it was given -- resolved: union merge of tests: tests/engines/pcode/test_pcode.py
 - [#6822](https://github.com/angr/angr/pull/6822) JumpTableResolver: Follow the PowerPC branch alignment mask
+- [#6823](https://github.com/angr/angr/pull/6823) CFGFast: Stop static_exits from running an unrelated SimProcedure and aborting the scan -- resolved: union merge of tests: tests/analyses/cfg/test_cfgfast.py
+- [#6828](https://github.com/angr/angr/pull/6828) CFGFast: Keep a function whose block ends in an undefined instruction -- resolved: union merge of tests: tests/analyses/cfg/test_cfgfast.py
 - [#6839](https://github.com/angr/angr/pull/6839) CFGFast: Read the bytes after a failed lift from memory
 - [#6844](https://github.com/angr/angr/pull/6844) CFGFast: Resolve pending indirect jumps in the order the scan found them
+- [#6846](https://github.com/angr/angr/pull/6846) Decompiler: Preserve path context in guarding conditions -- resolved: union merge of tests: tests/analyses/decompiler/test_condition_processor.py
 - [#6847](https://github.com/angr/angr/pull/6847) Decompiler: Recover link registers used as general-purpose registers
 - [#6848](https://github.com/angr/angr/pull/6848) Decompiler: Reset Thumb IT state at function entry
 - [#6850](https://github.com/angr/angr/pull/6850) Decompiler: Preserve indirect store addresses across type casts
+- [#6865](https://github.com/angr/angr/pull/6865) CFGFast: Do not judge a function by the block past a non-returning call -- resolved: union merge of tests: tests/analyses/cfg/test_cfgfast.py
+- [#6867](https://github.com/angr/angr/pull/6867) CFGFast: Delete the function that starts inside an instruction, not another one -- resolved: union merge of tests: tests/analyses/cfg/test_cfgfast.py
 - [#6880](https://github.com/angr/angr/pull/6880) JumpTableResolver: Recognize Mach-O zero fill and refuse a table read out of it
+- [#6889](https://github.com/angr/angr/pull/6889) CFGFast: Do not decode an object CLE invented -- resolved: union merge of tests: tests/analyses/cfg/test_cfgfast.py
 - [#6900](https://github.com/angr/angr/pull/6900) Decompiler: Track ARM registers that save and restore the stack pointer
+- [#6901](https://github.com/angr/angr/pull/6901) CFGFast: Do not delete a block another function still owns -- resolved: union merge of tests: tests/analyses/cfg/test_cfgfast.py
+- [#6902](https://github.com/angr/angr/pull/6902) CFGFast: Fix a KeyError from _remove_redundant_overlapping_blocks on ARM. -- resolved: union merge of tests: tests/analyses/cfg/test_cfgfast.py
+- [#6903](https://github.com/angr/angr/pull/6903) CFGFast: Correct a returning status that no return site supports -- resolved: union merge of tests: tests/analyses/cfg/test_cfgfast.py
 - [#6905](https://github.com/angr/angr/pull/6905) Decompiler: Preserve Phoenix switch entry identities
 - [#6908](https://github.com/angr/angr/pull/6908) Decompiler: Isolate structuring optimization probes
 - [#6910](https://github.com/angr/angr/pull/6910) CFGBase: Track the functions with no jobs left instead of rescanning
+- [#6911](https://github.com/angr/angr/pull/6911) Decompiler: Preserve recorded goto identities -- resolved: union merge of tests: tests/analyses/decompiler/test_structured_codegen.py
+- [#6929](https://github.com/angr/angr/pull/6929) CFGFast: Skip a whole undecodable RISC-V instruction, not one byte -- resolved: union merge of tests: tests/analyses/cfg/test_cfgfast.py
 - [#6930](https://github.com/angr/angr/pull/6930) Serialize Soot addresses
 - [#6934](https://github.com/angr/angr/pull/6934) Pcode: Fix partial reads of a unique written wide
 - [#6935](https://github.com/angr/angr/pull/6935) Suppress pthread static-exit register fill warnings
@@ -92,38 +105,25 @@ Applied:
 - [#6940](https://github.com/angr/angr/pull/6940) Decompiler: Render program bytes that are not valid UTF-8
 - [#6941](https://github.com/angr/angr/pull/6941) Bound the memory kb.decompilations holds when decompiling many functions
 - [#6942](https://github.com/angr/angr/pull/6942) Decompiler: Remove the whole orphaned chain in LoweredSwitchSimplifier
+- [#6943](https://github.com/angr/angr/pull/6943) CFGFast: Stop reporting a null terminator the string scan never saw -- resolved: union merge of tests: tests/analyses/cfg/test_cfgfast.py
+- [#6944](https://github.com/angr/angr/pull/6944) Serialize the AIL switch-case head marker instead of losing the cache -- resolved: union merge of tests: tests/serialization/test_decompilation_cache_serialization.py
 - [#6945](https://github.com/angr/angr/pull/6945) Decompiler: Recover syslog variadic arguments
 - [#6946](https://github.com/angr/angr/pull/6946) Decompiler: Preserve intra-function tail jumps
 - [#6947](https://github.com/angr/angr/pull/6947) Ssailification: Drop a stack phi whose sources do not match its destination
-- [#6948](https://github.com/angr/angr/pull/6948) CFGFast: Preserve authoritative function starts during reconstruction
+- [#6948](https://github.com/angr/angr/pull/6948) CFGFast: Preserve authoritative function starts during reconstruction -- resolved: union merge of tests: tests/analyses/cfg/test_cfgfast.py
 - [#6950](https://github.com/angr/angr/pull/6950) Recover semantic main prototypes from libc startup
 - [#6951](https://github.com/angr/angr/pull/6951) sim_type: stop name-keyed memos collapsing distinct anonymous aggregates
 - [#6952](https://github.com/angr/angr/pull/6952) Decompiler: rebind breaks and continues that no longer reach their target
 - [#6953](https://github.com/angr/angr/pull/6953) Ssailification: seed the SSA traversal from the entry Clinic resolves
 
 Skipped at assembly:
-- [#6810](https://github.com/angr/angr/pull/6810) CFGFast: Do not record a call return site in an unmapped alignment hole -- conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py
-- [#6814](https://github.com/angr/angr/pull/6814) PcodeLifter: Give each project its own Sleigh context -- conflicts with the applied set: tests/engines/pcode/test_pcode.py
 - [#6817](https://github.com/angr/angr/pull/6817) Pcode: Disassemble lazily and match VEX's block cache size. -- conflicts with the applied set: angr/engines/pcode/lifter.py, tests/engines/pcode/test_pcode.py
 - [#6818](https://github.com/angr/angr/pull/6818) SimProcedures: Fix pthread_create.static_exits(). -- conflicts with the applied set: angr/procedures/posix/pthread.py
-- [#6823](https://github.com/angr/angr/pull/6823) CFGFast: Stop static_exits from running an unrelated SimProcedure and aborting the scan -- conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py
-- [#6826](https://github.com/angr/angr/pull/6826) CFGBase: Leave overlapping blocks alone when their decodings conflict. -- conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py
-- [#6827](https://github.com/angr/angr/pull/6827) CFGFast: Recognize NOP padding instead of seeding a function at it -- conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py
-- [#6828](https://github.com/angr/angr/pull/6828) CFGFast: Keep a function whose block ends in an undefined instruction -- conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py
-- [#6846](https://github.com/angr/angr/pull/6846) Decompiler: Preserve path context in guarding conditions -- conflicts with the applied set: tests/analyses/decompiler/test_condition_processor.py
-- [#6865](https://github.com/angr/angr/pull/6865) CFGFast: Do not judge a function by the block past a non-returning call -- conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py
-- [#6867](https://github.com/angr/angr/pull/6867) CFGFast: Delete the function that starts inside an instruction, not another one -- conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py
-- [#6889](https://github.com/angr/angr/pull/6889) CFGFast: Do not decode an object CLE invented -- conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py
-- [#6901](https://github.com/angr/angr/pull/6901) CFGFast: Do not delete a block another function still owns -- conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py
-- [#6902](https://github.com/angr/angr/pull/6902) CFGFast: Fix a KeyError from _remove_redundant_overlapping_blocks on ARM. -- conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py
-- [#6903](https://github.com/angr/angr/pull/6903) CFGFast: Correct a returning status that no return site supports -- conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py
-- [#6911](https://github.com/angr/angr/pull/6911) Decompiler: Preserve recorded goto identities -- conflicts with the applied set: tests/analyses/decompiler/test_structured_codegen.py
-- [#6929](https://github.com/angr/angr/pull/6929) CFGFast: Skip a whole undecodable RISC-V instruction, not one byte -- conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py
-- [#6932](https://github.com/angr/angr/pull/6932) Pcode: Lift an architecture whose word is not a power of two -- conflicts with the applied set: angr/engines/pcode/lifter.py
+- [#6826](https://github.com/angr/angr/pull/6826) CFGBase: Leave overlapping blocks alone when their decodings conflict. -- conflicts in tests could not be union-merged: tests/analyses/cfg/test_cfgfast.py
+- [#6827](https://github.com/angr/angr/pull/6827) CFGFast: Recognize NOP padding instead of seeding a function at it -- conflicts in tests could not be union-merged: tests/analyses/cfg/test_cfgfast.py
+- [#6932](https://github.com/angr/angr/pull/6932) Pcode: Lift an architecture whose word is not a power of two -- conflicts with the applied set: angr/engines/pcode/lifter.py, tests/engines/pcode/test_pcode.py
 - [#6933](https://github.com/angr/angr/pull/6933) SimState: Register a plugin before initializing it -- conflicts with the applied set: angr/sim_state.py
 - [#6936](https://github.com/angr/angr/pull/6936) Make function graphs observable and owned -- conflicts with the applied set: angr/knowledge_plugins/functions/soot_function.py
-- [#6943](https://github.com/angr/angr/pull/6943) CFGFast: Stop reporting a null terminator the string scan never saw -- conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py
-- [#6944](https://github.com/angr/angr/pull/6944) Serialize the AIL switch-case head marker instead of losing the cache -- conflicts with the applied set: tests/serialization/test_decompilation_cache_serialization.py
 
 Excluded by selection:
 - [#6658](https://github.com/angr/angr/pull/6658) Add first-class WebAssembly runtime support -- conflicts with the upstream default branch
@@ -193,31 +193,31 @@ Applied:
 - [#755](https://github.com/angr/cle/pull/755) PE: Build base relocations on every architecture the backend resolves
 - [#756](https://github.com/angr/cle/pull/756) PE: Read the ARM64 and ARMNT exception directory
 - [#757](https://github.com/angr/cle/pull/757) PE: Resolve the machine type of a ReadyToRun image built for another system
+- [#760](https://github.com/angr/cle/pull/760) Regions: Stop the address lookups from assuming an order the list may not have -- resolved: union merge of tests: tests/test_regions.py
+- [#765](https://github.com/angr/cle/pull/765) Keep a rebased object out of the null page -- resolved: union merge of tests: tests/test_rebase.py
 - [#766](https://github.com/angr/cle/pull/766) Give a PowerPC64 jump slot's extern a function descriptor
 - [#768](https://github.com/angr/cle/pull/768) Survive a CIE that declares no FDE encoding
 - [#770](https://github.com/angr/cle/pull/770) ELF: Read a line program in the DWARF format it declares
 - [#773](https://github.com/angr/cle/pull/773) Relocate R_*_RELATIVE against the load bias, not the mapped base
 - [#774](https://github.com/angr/cle/pull/774) UEFI: Load every FFS file type that carries a module image
+- [#775](https://github.com/angr/cle/pull/775) COFF: Extend the object over the whole image it maps -- resolved: union merge of tests: tests/test_coff.py
+- [#776](https://github.com/angr/cle/pull/776) Place the main binary at 0x400000 only when that space is free -- resolved: union merge of tests: tests/test_rebase.py
 - [#780](https://github.com/angr/cle/pull/780) Load a Mach-O MH_EXECUTE that a container backend owns
 - [#783](https://github.com/angr/cle/pull/783) Load a bare DEX
+- [#785](https://github.com/angr/cle/pull/785) ELF: Size imported objects from DWARF declarations -- resolved: union merge of tests: tests/test_extern.py
+- [#786](https://github.com/angr/cle/pull/786) Use SimData types for untyped externs -- resolved: union merge of tests: tests/test_extern.py
 - [#787](https://github.com/angr/cle/pull/787) Load a Mach-O relocatable object
+- [#790](https://github.com/angr/cle/pull/790) PE: Back the last byte of the image the section table declares -- resolved: union merge of tests: tests/test_pe.py
 - [#791](https://github.com/angr/cle/pull/791) ELF: Take the word size from the machine, not the container
 
 Skipped at assembly:
 - [#725](https://github.com/angr/cle/pull/725) Load minidumps whose writer left out a stream -- conflicts with the applied set: cle/backends/minidump/__init__.py, tests/test_minidump.py
 - [#728](https://github.com/angr/cle/pull/728) Load Mach-O bundles and kernel extensions -- conflicts with the applied set: cle/backends/macho/macho.py
 - [#759](https://github.com/angr/cle/pull/759) Minidump: Describe a loaded module by the sections it actually has -- conflicts with the applied set: cle/backends/minidump/__init__.py, tests/test_minidump.py
-- [#760](https://github.com/angr/cle/pull/760) Regions: Stop the address lookups from assuming an order the list may not have -- conflicts with the applied set: tests/test_regions.py
 - [#761](https://github.com/angr/cle/pull/761) COFF: Expose undefined externals through self.imports -- conflicts with the applied set: cle/backends/coff.py, tests/test_coff.py
 - [#764](https://github.com/angr/cle/pull/764) COFF: Give a section with no file bytes an address of its own -- conflicts with the applied set: cle/backends/coff.py, tests/test_coff.py
-- [#765](https://github.com/angr/cle/pull/765) Keep a rebased object out of the null page -- conflicts with the applied set: tests/test_rebase.py
-- [#775](https://github.com/angr/cle/pull/775) COFF: Extend the object over the whole image it maps -- conflicts with the applied set: tests/test_coff.py
-- [#776](https://github.com/angr/cle/pull/776) Place the main binary at 0x400000 only when that space is free -- conflicts with the applied set: tests/test_rebase.py
 - [#777](https://github.com/angr/cle/pull/777) ELF: Load the .eh_frame function hints without load_debug_info -- conflicts with the applied set: cle/backends/elf/elf.py
-- [#785](https://github.com/angr/cle/pull/785) ELF: Size imported objects from DWARF declarations -- conflicts with the applied set: tests/test_extern.py
-- [#786](https://github.com/angr/cle/pull/786) Use SimData types for untyped externs -- conflicts with the applied set: tests/test_extern.py
 - [#788](https://github.com/angr/cle/pull/788) Make loader memory reads side-effect free -- conflicts with the applied set: cle/memory.py, tests/test_clemory.py
-- [#790](https://github.com/angr/cle/pull/790) PE: Back the last byte of the image the section table declares -- conflicts with the applied set: tests/test_pe.py
 
 Excluded by selection:
 - [#704](https://github.com/angr/cle/pull/704) Test CLE under Pyodide -- depends on angr/angr#6658 which is excluded: conflicts with the upstream default branch
@@ -243,15 +243,13 @@ Excluded by selection:
 
 Applied:
 - [#564](https://github.com/angr/pyvex/pull/564) Lifting: Tell libVEX how much of the lift buffer it may read.
+- [#566](https://github.com/angr/pyvex/pull/566) Lifting: Decode RISC-V store-conditional and float comparisons again -- resolved: merged submodule vex: 88aa12d+3ce6fb2 -> bc1a64e
+- [#567](https://github.com/angr/pyvex/pull/567) Keep the decoded prefix when MIPS32 meets a MIPS64-only instruction -- resolved: merged submodule vex: bc1a64e+561795c -> eccb0b1
+- [#568](https://github.com/angr/pyvex/pull/568) Lifting: Handle mixed-width Thumb IT lookback -- resolved: merged submodule vex: eccb0b1+881703e -> e3bc1db
 - [#569](https://github.com/angr/pyvex/pull/569) Do not fail the import when the FFI parser cache cannot be written
+- [#570](https://github.com/angr/pyvex/pull/570) Lifting: Resolve s390x BRCTH branch targets past a 16-bit displacement -- resolved: merged submodule vex: e3bc1db+4f9a019 -> 26ed984
+- [#571](https://github.com/angr/pyvex/pull/571) Lifting: Keep a stale s390x execute target from suppressing later EXRL expansion -- resolved: merged submodule vex: 26ed984+f7b8fcc -> 51e0a41
 - [#573](https://github.com/angr/pyvex/pull/573) Do not lose a decode error to its own handler
-
-Skipped at assembly:
-- [#566](https://github.com/angr/pyvex/pull/566) Lifting: Decode RISC-V store-conditional and float comparisons again -- conflicts with the applied set: vex
-- [#567](https://github.com/angr/pyvex/pull/567) Keep the decoded prefix when MIPS32 meets a MIPS64-only instruction -- conflicts with the applied set: vex
-- [#568](https://github.com/angr/pyvex/pull/568) Lifting: Handle mixed-width Thumb IT lookback -- conflicts with the applied set: vex
-- [#570](https://github.com/angr/pyvex/pull/570) Lifting: Resolve s390x BRCTH branch targets past a 16-bit displacement -- conflicts with the applied set: vex
-- [#571](https://github.com/angr/pyvex/pull/571) Lifting: Keep a stale s390x execute target from suppressing later EXRL expansion -- conflicts with the applied set: vex
 <!-- vibr:end -->
 
 ## How a pull request gets in

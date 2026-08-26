@@ -173,6 +173,15 @@ def _sign_extend(value: int, bits: int) -> int:
 
 def _read_mov_imm16(hw0: int, hw1: int) -> int:
     return ((hw0 & 0xF) << 12) | ((hw0 & 0x400) << 1) | ((hw1 & 0x7000) >> 4) | (hw1 & 0xFF)
+    def test_the_object_extends_over_everything_it_maps(self):
+        # The loader gives the next object the space above max_addr, so an extent that stops short
+        # of the mapped image gets that object mapped on top of this one.
+        exe = os.path.join(TEST_BASE, "tests", "x86_64", "fauxware.obj")
+        ld = cle.Loader(exe, auto_load_libs=False)
+        obj = ld.main_object
+
+        mapped_end = obj.min_addr + max(start + len(backer) for start, backer in obj.memory.backers())
+        assert obj.max_addr >= mapped_end - 1
 
 
 if __name__ == "__main__":

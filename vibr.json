@@ -1,13 +1,13 @@
 {
  "schema": 1,
- "generated_at": "2026-08-26T09:09:06+00:00",
+ "generated_at": "2026-08-26T09:17:32+00:00",
  "selection_generated_at": "2026-08-26T09:02:28+00:00",
  "components": {
   "angr": {
    "upstream": "https://github.com/angr/angr",
    "default_branch": "master",
    "base": "829ea98f577ac04d9cd3927ddc868713a5b0a1ab",
-   "head": "da083e7e50e59a76881512631e1ef4bcd6b6db39",
+   "head": "5ade7d75265b1726037d48946324ff7810b6cc2d",
    "applied": [
     {
      "number": 6655,
@@ -106,10 +106,24 @@
      "head_sha": "5170e0acbebde7b4ab061fcb473ee2affcc6564d"
     },
     {
+     "number": 6810,
+     "title": "CFGFast: Do not record a call return site in an unmapped alignment hole",
+     "url": "https://github.com/angr/angr/pull/6810",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
+     "head_sha": "a71dd5c73ecc6aa42ceaa8068e3ca8e0469aa143"
+    },
+    {
      "number": 6813,
      "title": "ArmElfFastResolver: Stop aborting CFGFast on an add of two registers",
      "url": "https://github.com/angr/angr/pull/6813",
      "head_sha": "0b770da7a043163f68d124f5715b56f9ea9b4526"
+    },
+    {
+     "number": 6814,
+     "title": "PcodeLifter: Give each project its own Sleigh context",
+     "url": "https://github.com/angr/angr/pull/6814",
+     "resolution": "union merge of tests: tests/engines/pcode/test_pcode.py",
+     "head_sha": "05195bd6838407f90ff1578ac45030398e72092f"
     },
     {
      "number": 6815,
@@ -121,6 +135,7 @@
      "number": 6816,
      "title": "PcodeLifter: Stop a block from running past the bytes it was given",
      "url": "https://github.com/angr/angr/pull/6816",
+     "resolution": "union merge of tests: tests/engines/pcode/test_pcode.py",
      "head_sha": "bfdff22db45f7b69311f2c1df491fe5fe7195e5d"
     },
     {
@@ -128,6 +143,20 @@
      "title": "JumpTableResolver: Follow the PowerPC branch alignment mask",
      "url": "https://github.com/angr/angr/pull/6822",
      "head_sha": "4db9ffa2ba71a030276147fa2f6a8e3188802952"
+    },
+    {
+     "number": 6823,
+     "title": "CFGFast: Stop static_exits from running an unrelated SimProcedure and aborting the scan",
+     "url": "https://github.com/angr/angr/pull/6823",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
+     "head_sha": "3b0b6960900a5288cb2706460c1d64a38f476383"
+    },
+    {
+     "number": 6828,
+     "title": "CFGFast: Keep a function whose block ends in an undefined instruction",
+     "url": "https://github.com/angr/angr/pull/6828",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
+     "head_sha": "7d562c8abfc76138ca08dc3d0a1193f86b3f9ff4"
     },
     {
      "number": 6839,
@@ -140,6 +169,13 @@
      "title": "CFGFast: Resolve pending indirect jumps in the order the scan found them",
      "url": "https://github.com/angr/angr/pull/6844",
      "head_sha": "2b55eba998c509c2e2926011171830aeb62b3a2d"
+    },
+    {
+     "number": 6846,
+     "title": "Decompiler: Preserve path context in guarding conditions",
+     "url": "https://github.com/angr/angr/pull/6846",
+     "resolution": "union merge of tests: tests/analyses/decompiler/test_condition_processor.py",
+     "head_sha": "bd01c139ba99c305927de66bdab95de2d7778c41"
     },
     {
      "number": 6847,
@@ -160,16 +196,58 @@
      "head_sha": "83d7c034bac525a462bdfab400e76d50f4a798fe"
     },
     {
+     "number": 6865,
+     "title": "CFGFast: Do not judge a function by the block past a non-returning call",
+     "url": "https://github.com/angr/angr/pull/6865",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
+     "head_sha": "11327c9f368290932730e54cadf86faa16da3a17"
+    },
+    {
+     "number": 6867,
+     "title": "CFGFast: Delete the function that starts inside an instruction, not another one",
+     "url": "https://github.com/angr/angr/pull/6867",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
+     "head_sha": "8d0a3742ae95a8f11a7eb22548ba547939e7521f"
+    },
+    {
      "number": 6880,
      "title": "JumpTableResolver: Recognize Mach-O zero fill and refuse a table read out of it",
      "url": "https://github.com/angr/angr/pull/6880",
      "head_sha": "4144f874d20c60ce7baa761d0741d9ce5cbb4358"
     },
     {
+     "number": 6889,
+     "title": "CFGFast: Do not decode an object CLE invented",
+     "url": "https://github.com/angr/angr/pull/6889",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
+     "head_sha": "8f8effcf71d77a32846a7a18deff642dbff1a8fd"
+    },
+    {
      "number": 6900,
      "title": "Decompiler: Track ARM registers that save and restore the stack pointer",
      "url": "https://github.com/angr/angr/pull/6900",
      "head_sha": "2d9a4c71459ea39c89d320cc474aa8ad7e65e0b6"
+    },
+    {
+     "number": 6901,
+     "title": "CFGFast: Do not delete a block another function still owns",
+     "url": "https://github.com/angr/angr/pull/6901",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
+     "head_sha": "b43e21d5533a04954179fe3cd70b4d923b0dfc48"
+    },
+    {
+     "number": 6902,
+     "title": "CFGFast: Fix a KeyError from _remove_redundant_overlapping_blocks on ARM.",
+     "url": "https://github.com/angr/angr/pull/6902",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
+     "head_sha": "41326cab01ecc0f60d6b53c495d6da6710fad87d"
+    },
+    {
+     "number": 6903,
+     "title": "CFGFast: Correct a returning status that no return site supports",
+     "url": "https://github.com/angr/angr/pull/6903",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
+     "head_sha": "92445e5416b4cb8405a9b8447d91e1e39050da65"
     },
     {
      "number": 6905,
@@ -188,6 +266,20 @@
      "title": "CFGBase: Track the functions with no jobs left instead of rescanning",
      "url": "https://github.com/angr/angr/pull/6910",
      "head_sha": "441acb852e41b5f98d34d8b67bb6efebc914a201"
+    },
+    {
+     "number": 6911,
+     "title": "Decompiler: Preserve recorded goto identities",
+     "url": "https://github.com/angr/angr/pull/6911",
+     "resolution": "union merge of tests: tests/analyses/decompiler/test_structured_codegen.py",
+     "head_sha": "a246baff8859c790717053a35b67d067061d9f09"
+    },
+    {
+     "number": 6929,
+     "title": "CFGFast: Skip a whole undecodable RISC-V instruction, not one byte",
+     "url": "https://github.com/angr/angr/pull/6929",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
+     "head_sha": "d2efdf319ec79631b12cc7869b4c341d38212b30"
     },
     {
      "number": 6930,
@@ -238,6 +330,20 @@
      "head_sha": "552915a914a736277eaac16d91e981d8ffc4460f"
     },
     {
+     "number": 6943,
+     "title": "CFGFast: Stop reporting a null terminator the string scan never saw",
+     "url": "https://github.com/angr/angr/pull/6943",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
+     "head_sha": "1240c3fe3cb5e0d4d4c4646ca0f6144afdc74835"
+    },
+    {
+     "number": 6944,
+     "title": "Serialize the AIL switch-case head marker instead of losing the cache",
+     "url": "https://github.com/angr/angr/pull/6944",
+     "resolution": "union merge of tests: tests/serialization/test_decompilation_cache_serialization.py",
+     "head_sha": "15bc51b2b1236842efc964830db589c384009e78"
+    },
+    {
      "number": 6945,
      "title": "Decompiler: Recover syslog variadic arguments",
      "url": "https://github.com/angr/angr/pull/6945",
@@ -259,6 +365,7 @@
      "number": 6948,
      "title": "CFGFast: Preserve authoritative function starts during reconstruction",
      "url": "https://github.com/angr/angr/pull/6948",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
      "head_sha": "556f7365622634563a5b174cddb3b3003ca82824"
     },
     {
@@ -288,18 +395,6 @@
    ],
    "skipped": [
     {
-     "number": 6810,
-     "title": "CFGFast: Do not record a call return site in an unmapped alignment hole",
-     "url": "https://github.com/angr/angr/pull/6810",
-     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
-    },
-    {
-     "number": 6814,
-     "title": "PcodeLifter: Give each project its own Sleigh context",
-     "url": "https://github.com/angr/angr/pull/6814",
-     "reason": "conflicts with the applied set: tests/engines/pcode/test_pcode.py"
-    },
-    {
      "number": 6817,
      "title": "Pcode: Disassemble lazily and match VEX's block cache size.",
      "url": "https://github.com/angr/angr/pull/6817",
@@ -312,88 +407,22 @@
      "reason": "conflicts with the applied set: angr/procedures/posix/pthread.py"
     },
     {
-     "number": 6823,
-     "title": "CFGFast: Stop static_exits from running an unrelated SimProcedure and aborting the scan",
-     "url": "https://github.com/angr/angr/pull/6823",
-     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
-    },
-    {
      "number": 6826,
      "title": "CFGBase: Leave overlapping blocks alone when their decodings conflict.",
      "url": "https://github.com/angr/angr/pull/6826",
-     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+     "reason": "conflicts in tests could not be union-merged: tests/analyses/cfg/test_cfgfast.py"
     },
     {
      "number": 6827,
      "title": "CFGFast: Recognize NOP padding instead of seeding a function at it",
      "url": "https://github.com/angr/angr/pull/6827",
-     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
-    },
-    {
-     "number": 6828,
-     "title": "CFGFast: Keep a function whose block ends in an undefined instruction",
-     "url": "https://github.com/angr/angr/pull/6828",
-     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
-    },
-    {
-     "number": 6846,
-     "title": "Decompiler: Preserve path context in guarding conditions",
-     "url": "https://github.com/angr/angr/pull/6846",
-     "reason": "conflicts with the applied set: tests/analyses/decompiler/test_condition_processor.py"
-    },
-    {
-     "number": 6865,
-     "title": "CFGFast: Do not judge a function by the block past a non-returning call",
-     "url": "https://github.com/angr/angr/pull/6865",
-     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
-    },
-    {
-     "number": 6867,
-     "title": "CFGFast: Delete the function that starts inside an instruction, not another one",
-     "url": "https://github.com/angr/angr/pull/6867",
-     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
-    },
-    {
-     "number": 6889,
-     "title": "CFGFast: Do not decode an object CLE invented",
-     "url": "https://github.com/angr/angr/pull/6889",
-     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
-    },
-    {
-     "number": 6901,
-     "title": "CFGFast: Do not delete a block another function still owns",
-     "url": "https://github.com/angr/angr/pull/6901",
-     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
-    },
-    {
-     "number": 6902,
-     "title": "CFGFast: Fix a KeyError from _remove_redundant_overlapping_blocks on ARM.",
-     "url": "https://github.com/angr/angr/pull/6902",
-     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
-    },
-    {
-     "number": 6903,
-     "title": "CFGFast: Correct a returning status that no return site supports",
-     "url": "https://github.com/angr/angr/pull/6903",
-     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
-    },
-    {
-     "number": 6911,
-     "title": "Decompiler: Preserve recorded goto identities",
-     "url": "https://github.com/angr/angr/pull/6911",
-     "reason": "conflicts with the applied set: tests/analyses/decompiler/test_structured_codegen.py"
-    },
-    {
-     "number": 6929,
-     "title": "CFGFast: Skip a whole undecodable RISC-V instruction, not one byte",
-     "url": "https://github.com/angr/angr/pull/6929",
-     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+     "reason": "conflicts in tests could not be union-merged: tests/analyses/cfg/test_cfgfast.py"
     },
     {
      "number": 6932,
      "title": "Pcode: Lift an architecture whose word is not a power of two",
      "url": "https://github.com/angr/angr/pull/6932",
-     "reason": "conflicts with the applied set: angr/engines/pcode/lifter.py"
+     "reason": "conflicts with the applied set: angr/engines/pcode/lifter.py, tests/engines/pcode/test_pcode.py"
     },
     {
      "number": 6933,
@@ -406,18 +435,6 @@
      "title": "Make function graphs observable and owned",
      "url": "https://github.com/angr/angr/pull/6936",
      "reason": "conflicts with the applied set: angr/knowledge_plugins/functions/soot_function.py"
-    },
-    {
-     "number": 6943,
-     "title": "CFGFast: Stop reporting a null terminator the string scan never saw",
-     "url": "https://github.com/angr/angr/pull/6943",
-     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
-    },
-    {
-     "number": 6944,
-     "title": "Serialize the AIL switch-case head marker instead of losing the cache",
-     "url": "https://github.com/angr/angr/pull/6944",
-     "reason": "conflicts with the applied set: tests/serialization/test_decompilation_cache_serialization.py"
     }
    ],
    "excluded": [
@@ -642,7 +659,7 @@
    "upstream": "https://github.com/angr/cle",
    "default_branch": "master",
    "base": "46a37333f4f59b0facf8774ee743ebc4cc074e9b",
-   "head": "1e6af571166a180617443a4e28628e1883132ba0",
+   "head": "d7a986635064137e1452c24569544801f53d5d31",
    "applied": [
     {
      "number": 714,
@@ -771,6 +788,20 @@
      "head_sha": "eb5769491392a59a6117925069896f8b8de3945c"
     },
     {
+     "number": 760,
+     "title": "Regions: Stop the address lookups from assuming an order the list may not have",
+     "url": "https://github.com/angr/cle/pull/760",
+     "resolution": "union merge of tests: tests/test_regions.py",
+     "head_sha": "a493c20f352931babb0a32b088df782f08aa12eb"
+    },
+    {
+     "number": 765,
+     "title": "Keep a rebased object out of the null page",
+     "url": "https://github.com/angr/cle/pull/765",
+     "resolution": "union merge of tests: tests/test_rebase.py",
+     "head_sha": "67f1f456a792473ca29bc61a3b9f3a66df5333d1"
+    },
+    {
      "number": 766,
      "title": "Give a PowerPC64 jump slot's extern a function descriptor",
      "url": "https://github.com/angr/cle/pull/766",
@@ -801,6 +832,20 @@
      "head_sha": "90ef0ddae6a9f308790b8efe980ba70a49df1116"
     },
     {
+     "number": 775,
+     "title": "COFF: Extend the object over the whole image it maps",
+     "url": "https://github.com/angr/cle/pull/775",
+     "resolution": "union merge of tests: tests/test_coff.py",
+     "head_sha": "85c9359aab22f7b132a710c0e120c010a6f28680"
+    },
+    {
+     "number": 776,
+     "title": "Place the main binary at 0x400000 only when that space is free",
+     "url": "https://github.com/angr/cle/pull/776",
+     "resolution": "union merge of tests: tests/test_rebase.py",
+     "head_sha": "6f08fcbbc93feb4d0e653d8998e8c57cca538608"
+    },
+    {
      "number": 780,
      "title": "Load a Mach-O MH_EXECUTE that a container backend owns",
      "url": "https://github.com/angr/cle/pull/780",
@@ -813,10 +858,31 @@
      "head_sha": "e5d9d25e58305a1adf9cb55e3af540e1a4d8026b"
     },
     {
+     "number": 785,
+     "title": "ELF: Size imported objects from DWARF declarations",
+     "url": "https://github.com/angr/cle/pull/785",
+     "resolution": "union merge of tests: tests/test_extern.py",
+     "head_sha": "2048e76dd7157b90bef01d6f6990e809a4b91c4e"
+    },
+    {
+     "number": 786,
+     "title": "Use SimData types for untyped externs",
+     "url": "https://github.com/angr/cle/pull/786",
+     "resolution": "union merge of tests: tests/test_extern.py",
+     "head_sha": "5b9dcb985959007ad473c7ca7a0fec522c5fe5ec"
+    },
+    {
      "number": 787,
      "title": "Load a Mach-O relocatable object",
      "url": "https://github.com/angr/cle/pull/787",
      "head_sha": "2c0d6690220bb7c3bb7dc1797a914e7e572082f3"
+    },
+    {
+     "number": 790,
+     "title": "PE: Back the last byte of the image the section table declares",
+     "url": "https://github.com/angr/cle/pull/790",
+     "resolution": "union merge of tests: tests/test_pe.py",
+     "head_sha": "b43adc6bd237e2fbbeb96820d149935c3f515ef1"
     },
     {
      "number": 791,
@@ -845,12 +911,6 @@
      "reason": "conflicts with the applied set: cle/backends/minidump/__init__.py, tests/test_minidump.py"
     },
     {
-     "number": 760,
-     "title": "Regions: Stop the address lookups from assuming an order the list may not have",
-     "url": "https://github.com/angr/cle/pull/760",
-     "reason": "conflicts with the applied set: tests/test_regions.py"
-    },
-    {
      "number": 761,
      "title": "COFF: Expose undefined externals through self.imports",
      "url": "https://github.com/angr/cle/pull/761",
@@ -863,52 +923,16 @@
      "reason": "conflicts with the applied set: cle/backends/coff.py, tests/test_coff.py"
     },
     {
-     "number": 765,
-     "title": "Keep a rebased object out of the null page",
-     "url": "https://github.com/angr/cle/pull/765",
-     "reason": "conflicts with the applied set: tests/test_rebase.py"
-    },
-    {
-     "number": 775,
-     "title": "COFF: Extend the object over the whole image it maps",
-     "url": "https://github.com/angr/cle/pull/775",
-     "reason": "conflicts with the applied set: tests/test_coff.py"
-    },
-    {
-     "number": 776,
-     "title": "Place the main binary at 0x400000 only when that space is free",
-     "url": "https://github.com/angr/cle/pull/776",
-     "reason": "conflicts with the applied set: tests/test_rebase.py"
-    },
-    {
      "number": 777,
      "title": "ELF: Load the .eh_frame function hints without load_debug_info",
      "url": "https://github.com/angr/cle/pull/777",
      "reason": "conflicts with the applied set: cle/backends/elf/elf.py"
     },
     {
-     "number": 785,
-     "title": "ELF: Size imported objects from DWARF declarations",
-     "url": "https://github.com/angr/cle/pull/785",
-     "reason": "conflicts with the applied set: tests/test_extern.py"
-    },
-    {
-     "number": 786,
-     "title": "Use SimData types for untyped externs",
-     "url": "https://github.com/angr/cle/pull/786",
-     "reason": "conflicts with the applied set: tests/test_extern.py"
-    },
-    {
      "number": 788,
      "title": "Make loader memory reads side-effect free",
      "url": "https://github.com/angr/cle/pull/788",
      "reason": "conflicts with the applied set: cle/memory.py, tests/test_clemory.py"
-    },
-    {
-     "number": 790,
-     "title": "PE: Back the last byte of the image the section table declares",
-     "url": "https://github.com/angr/cle/pull/790",
-     "reason": "conflicts with the applied set: tests/test_pe.py"
     }
    ],
    "excluded": [
@@ -1018,7 +1042,7 @@
    "upstream": "https://github.com/angr/pyvex",
    "default_branch": "master",
    "base": "bdd5441035e02920eaa72c1c3cf9a4f0d572104d",
-   "head": "bc97c17aadb81f8c512b8e5a4c12668a3438aca4",
+   "head": "589ee1cd017c8e819f492e4a24d23d18718f88cf",
    "applied": [
     {
      "number": 564,
@@ -1027,10 +1051,45 @@
      "head_sha": "0beff92e436b913bdd82e7c77129cd263e21d433"
     },
     {
+     "number": 566,
+     "title": "Lifting: Decode RISC-V store-conditional and float comparisons again",
+     "url": "https://github.com/angr/pyvex/pull/566",
+     "resolution": "merged submodule vex: 88aa12d+3ce6fb2 -> bc1a64e",
+     "head_sha": "779fd3f5be77cb54543aae55ae4b90abcb1c5611"
+    },
+    {
+     "number": 567,
+     "title": "Keep the decoded prefix when MIPS32 meets a MIPS64-only instruction",
+     "url": "https://github.com/angr/pyvex/pull/567",
+     "resolution": "merged submodule vex: bc1a64e+561795c -> eccb0b1",
+     "head_sha": "28dd87a081feef2e988f24711819d3cd10502d64"
+    },
+    {
+     "number": 568,
+     "title": "Lifting: Handle mixed-width Thumb IT lookback",
+     "url": "https://github.com/angr/pyvex/pull/568",
+     "resolution": "merged submodule vex: eccb0b1+881703e -> e3bc1db",
+     "head_sha": "f37bba0584945d3cda8b85cfde7b2e645dc983fb"
+    },
+    {
      "number": 569,
      "title": "Do not fail the import when the FFI parser cache cannot be written",
      "url": "https://github.com/angr/pyvex/pull/569",
      "head_sha": "f89006a28e5e619a349b04669e9dd8cc0dbd14eb"
+    },
+    {
+     "number": 570,
+     "title": "Lifting: Resolve s390x BRCTH branch targets past a 16-bit displacement",
+     "url": "https://github.com/angr/pyvex/pull/570",
+     "resolution": "merged submodule vex: e3bc1db+4f9a019 -> 26ed984",
+     "head_sha": "4ef100ef5e0c27bf2ec4833112630a3468463735"
+    },
+    {
+     "number": 571,
+     "title": "Lifting: Keep a stale s390x execute target from suppressing later EXRL expansion",
+     "url": "https://github.com/angr/pyvex/pull/571",
+     "resolution": "merged submodule vex: 26ed984+f7b8fcc -> 51e0a41",
+     "head_sha": "0151bfe2be8df1308fbd50cdc915e5f187edf3be"
     },
     {
      "number": 573,
@@ -1039,38 +1098,7 @@
      "head_sha": "aa12a0370e0a2909cd75f614da5fb4d834956004"
     }
    ],
-   "skipped": [
-    {
-     "number": 566,
-     "title": "Lifting: Decode RISC-V store-conditional and float comparisons again",
-     "url": "https://github.com/angr/pyvex/pull/566",
-     "reason": "conflicts with the applied set: vex"
-    },
-    {
-     "number": 567,
-     "title": "Keep the decoded prefix when MIPS32 meets a MIPS64-only instruction",
-     "url": "https://github.com/angr/pyvex/pull/567",
-     "reason": "conflicts with the applied set: vex"
-    },
-    {
-     "number": 568,
-     "title": "Lifting: Handle mixed-width Thumb IT lookback",
-     "url": "https://github.com/angr/pyvex/pull/568",
-     "reason": "conflicts with the applied set: vex"
-    },
-    {
-     "number": 570,
-     "title": "Lifting: Resolve s390x BRCTH branch targets past a 16-bit displacement",
-     "url": "https://github.com/angr/pyvex/pull/570",
-     "reason": "conflicts with the applied set: vex"
-    },
-    {
-     "number": 571,
-     "title": "Lifting: Keep a stale s390x execute target from suppressing later EXRL expansion",
-     "url": "https://github.com/angr/pyvex/pull/571",
-     "reason": "conflicts with the applied set: vex"
-    }
-   ],
+   "skipped": [],
    "excluded": []
   }
  }

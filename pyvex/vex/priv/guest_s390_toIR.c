@@ -5368,7 +5368,7 @@ s390_irgen_BRCTH(UChar r1, UInt i2)
 {
    put_gpr_w0(r1, binop(Iop_Sub32, get_gpr_w0(r1), mkU32(1)));
    if_condition_goto(binop(Iop_CmpNE32, get_gpr_w0(r1), mkU32(0)),
-                     guest_IA_curr_instr + ((ULong)(Long)(Short)i2 << 1));
+                     guest_IA_curr_instr + ((ULong)(Long)(Int)i2 << 1));
 
    return "brcth";
 }
@@ -12971,6 +12971,7 @@ s390_irgen_EX(UChar r1, IRTemp addr2)
       put_IA(mkaddr_expr(guest_IA_next_instr));
       dis_res->whatNext = Dis_StopHere;
       dis_res->jk_StopHere = Ijk_InvalICache;
+      last_execute_target = 0;
       break;
    }
 
