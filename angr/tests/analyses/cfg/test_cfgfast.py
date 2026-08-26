@@ -11,16 +11,20 @@ import random
 import struct
 import tempfile
 import unittest
-from contextlib import nullcontext
 from unittest import mock
 
 import archinfo
 from elftools.elf.elffile import ELFFile
+from contextlib import nullcontext
+from unittest import mock
+
+import archinfo
 import cle
 
 import angr
+from angr.analyses.cfg.cfg_fast import CFGFast
 from angr.analyses.cfg.indirect_jump_resolvers import mips_elf_fast
-from angr.codenode import FuncNode
+from angr.codenode import BlockNode, FuncNode
 from angr.knowledge_plugins.cfg import CFGModel, CFGNode
 from angr.knowledge_plugins.cfg.indirect_jump import IndirectJump
 from angr.utils.constants import DEFAULT_STATEMENT
@@ -924,6 +928,30 @@ class TestCfgfast(unittest.TestCase):
         assert node is not None
         assert node.function_address == 0x40F770
 
+    def test_normalize_does_not_anchor_a_group_on_a_zero_size_node(self):
+        # a UDF instruction lifts to a zero-byte IRSB, and CFGFast still records an ordinary (non-SimProcedure)
+        # CFGNode for it. Two overlapping blocks end where that node starts, so grouping nodes by end address
+        # collects all three, and the zero-extent node has the highest address in the group.
+        path = os.path.join(test_location, "armel", "normalize_zero_size_anchor")
+        proj = angr.Project(path, auto_load_libs=False)
+        cfg = proj.analyses.CFGFast(normalize=True)
+        assert cfg.normalized
+
+        nodes = [n for n in cfg.model.nodes() if not n.is_simprocedure]
+        sized = [n for n in nodes if n.size]
+
+        # guard the fixture: it stops covering this defect if it ever loses the zero-size node that shares an
+        # end address with sized blocks
+        end_addrs = {n.addr + n.size for n in sized}
+        assert any(not n.size and n.addr in end_addrs for n in nodes)
+
+        # normalization's contract: no block may start at a non-leading instruction of another block
+        block_starts = {n.addr for n in sized}
+        for n in sized:
+            instruction_addrs = list(n.instruction_addrs)
+            inner_starts = [i for i in instruction_addrs[1:] if i in block_starts]
+            assert not inner_starts, f"{n!r} was left unsplit at {[hex(i) for i in inner_starts]}"
+
     def test_removing_lock_edges(self):
         path = os.path.join(
             test_location, "x86_64", "windows", "6f289eb8c8cd826525d79b195b1cf187df509d56120427b10ea3fb1b4db1b7b5.sys"
@@ -1176,6 +1204,63 @@ class TestCfgfast(unittest.TestCase):
         ):
             assert addr in cfg.kb.functions, f"{name} at {addr:#x} was dropped"
 
+    def test_fresh_model_rebuilds_function_graphs(self):
+        project = angr.Project(os.path.join(test_location, "armel", "libsoap.so"), auto_load_libs=False)
+        original_post_analysis = CFGFast._post_analysis  # pylint: disable=protected-access
+        observed_block_sizes = []
+
+        def observe_before_normalization(cfg):
+            function = cfg.functions[0x4066C8]
+            observed_block_sizes.append(
+                sorted(node.size for node in function.graph if isinstance(node, BlockNode) and node.addr == 0x4066EC)
+            )
+            return original_post_analysis(cfg)
+
+        with mock.patch.object(CFGFast, "_post_analysis", observe_before_normalization):
+            for _ in range(2):
+                cfg = project.analyses.CFGFast(
+                    normalize=True,
+                    regions=[(0x4066C8, 0x40676C)],
+                    function_starts=[0x4066C8],
+                )
+                self.assertTrue(cfg.functions[0x4066C8].normalized)
+
+        self.assertEqual(observed_block_sizes, [[28], [28]])
+
+    def test_fresh_model_invalidates_function_graph_caches(self):
+        project = angr.Project(os.path.join(test_location, "armel", "libsoap.so"), auto_load_libs=False)
+        function_addr = 0x4066C8
+        first = project.analyses.CFGFast(
+            normalize=False,
+            regions=[(function_addr, 0x406710)],
+            function_starts=[function_addr],
+        )
+        function = first.functions[function_addr]
+        first_complexity = function.cyclomatic_complexity
+        original_post_analysis = CFGFast._post_analysis  # pylint: disable=protected-access
+        observed = {}
+
+        def observe_rebuilt_graph(cfg):
+            rebuilt_function = cfg.functions[function_addr]
+            observed["same_function"] = rebuilt_function is function
+            observed["formula"] = (
+                rebuilt_function.transition_graph.number_of_edges()
+                - rebuilt_function.transition_graph.number_of_nodes()
+                + 2
+            )
+            observed["complexity"] = rebuilt_function.cyclomatic_complexity
+            return original_post_analysis(cfg)
+
+        with mock.patch.object(CFGFast, "_post_analysis", observe_rebuilt_graph):
+            project.analyses.CFGFast(
+                normalize=False,
+                regions=[(function_addr, 0x40676C)],
+                function_starts=[function_addr],
+            )
+
+        self.assertTrue(observed["same_function"])
+        self.assertNotEqual(first_complexity, observed["formula"])
+        self.assertEqual(observed["complexity"], observed["formula"])
     def test_arm_block_reintroduced_by_an_edge_stays_indexed(self):
         # lifting this blob invalidates the decoding assumption behind the block at 0x7f, which drops that block from
         # the CFG; a pending job then adds an edge out of the same block and puts it back into the graph. an edge is

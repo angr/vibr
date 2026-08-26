@@ -27,6 +27,7 @@ from .utils import (
     correct_jump_targets,
     deepcopy_ail_anyjump,
     replace_node_in_graph,
+    set_conditional_jump_target_addrs,
 )
 
 _l = logging.getLogger(name=__name__)
@@ -462,7 +463,9 @@ class DuplicationReverter(StructuringOptimizationPass):
             raise SAILRSemanticError("A condition would be too long for a fixup, this analysis must skip it")
 
         cond_block = Block(common_cond.addr, 1, idx=common_cond.idx + 1 if isinstance(common_cond.idx, int) else 1)
-        old_stmt_tags = common_cond.statements[0].tags
+        old_stmt_tags = common_cond.statements[0].tags.copy()
+        # extra_defs describes definitions made by the original statement, not by this synthesized conditional jump.
+        old_stmt_tags.pop("extra_defs", None)
         cond_jump = ConditionalJump(
             1,
             best_condition.copy() if best_condition is not None else None,
@@ -704,11 +707,15 @@ class DuplicationReverter(StructuringOptimizationPass):
             other_successor = next(iter(graph.successors(blocks[1])))
             conditional_block, true_target = self._construct_best_condition_block_for_merge(blocks, graph)
             if true_target == blocks[0]:
-                conditional_block.statements[-1].true_target.value = base_successor.addr
-                conditional_block.statements[-1].false_target.value = other_successor.addr
+                true_successor, false_successor = base_successor, other_successor
             else:
-                conditional_block.statements[-1].true_target.value = other_successor.addr
-                conditional_block.statements[-1].false_target.value = base_successor.addr
+                true_successor, false_successor = other_successor, base_successor
+
+            conditional_block.statements[-1] = set_conditional_jump_target_addrs(
+                conditional_block.statements[-1],
+                true_successor.addr,
+                false_successor.addr,
+            )
 
             ail_merge_graph.graph.add_edge(new_node, conditional_block)
             return ail_merge_graph
@@ -788,8 +795,14 @@ class DuplicationReverter(StructuringOptimizationPass):
                 # unlink src -X-> dst
                 graph.remove_edge(src, dst)
                 # correct the targets of the src
-                target = getattr(src.statements[-1], target_type)
-                target.value = nop_blk.addr
+                last_stmt = src.statements[-1]
+                true_target = last_stmt.true_target.value
+                false_target = last_stmt.false_target.value
+                if target_type == "true_target":
+                    true_target = nop_blk.addr
+                else:
+                    false_target = nop_blk.addr
+                src.statements[-1] = set_conditional_jump_target_addrs(last_stmt, true_target, false_target)
 
         return True
 

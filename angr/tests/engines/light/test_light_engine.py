@@ -45,26 +45,6 @@ class TestLightEngine(TestCase):
         abs_expr = ailment.Expr.UnaryOp(1, "Abs", operand)
         assert engine._handle_expr_UnaryOp(abs_expr) is abs_expr
 
-    def test_ail_int_convert_only_folds_integer_constant(self):
-        arch = archinfo.ArchAMD64()
-        engine = SimplifierAILEngine(SimpleNamespace(arch=arch))  # pyright: ignore[reportArgumentType]
-        float_operand = ailment.Expr.Const(0, 18.0, 32)  # pyright: ignore[reportArgumentType]
-        float_convert = ailment.Expr.Convert(1, 32, 64, False, float_operand)
-
-        float_result = engine._handle_expr_Convert(float_convert)
-
-        assert isinstance(float_result, ailment.Expr.Convert)
-        assert float_result.operand == float_operand
-
-        int_operand = ailment.Expr.Const(2, 0x1_0000_0012, 64)
-        int_convert = ailment.Expr.Convert(3, 64, 32, False, int_operand)
-
-        int_result = engine._handle_expr_Convert(int_convert)
-
-        assert isinstance(int_result, ailment.Expr.Const)
-        assert int_result.value == 0x12
-        assert int_result.bits == 32
-
     def test_inlined_string_abs_visits_operand(self):
         engine: Any = object.__new__(InlinedStringTransformationAILEngine)
         seen = []
@@ -91,30 +71,37 @@ class TestLightEngine(TestCase):
 
     def test_rda_dirty_expression_visits_inputs(self):
         engine: Any = object.__new__(SimEngineRDAIL)
-        seen = []
-        engine._expr = seen.append
         engine.state = SimpleNamespace(top=lambda bits: claripy.BVS("rda_dirty_top", bits))
         operand = ailment.Expr.Const(0, 1, 32)
         guard = ailment.Expr.Const(1, 1, 1)
         memory_address = ailment.Expr.Const(2, 0x4000, 64)
-        dirty_expr = ailment.Expr.DirtyExpression(
-            3,
-            "helper",
-            [operand],
-            guard=guard,
-            mfx="read",
-            maddr=memory_address,
-            msize=4,
-            bits=32,
+        cases = (
+            (guard, memory_address, [operand, guard, memory_address]),
+            (None, None, [operand]),
         )
 
-        result = engine._handle_expr_DirtyExpression(dirty_expr)
+        for current_guard, current_address, expected in cases:
+            with self.subTest(guard=current_guard, memory_address=current_address):
+                seen = []
+                engine._expr = seen.append
+                dirty_expr = ailment.Expr.DirtyExpression(
+                    3,
+                    "helper",
+                    [operand],
+                    guard=current_guard,
+                    mfx="read",
+                    maddr=current_address,
+                    msize=4,
+                    bits=32,
+                )
 
-        assert seen == [operand, guard, memory_address]
-        assert isinstance(result, MultiValues)
-        value = result.one_value()
-        assert value is not None
-        assert len(value) == 32
+                result = engine._handle_expr_DirtyExpression(dirty_expr)
+
+                self.assertEqual(seen, expected)
+                self.assertIsInstance(result, MultiValues)
+                value = result.one_value()
+                self.assertIsNotNone(value)
+                self.assertEqual(len(value), 32)
 
     def test_variable_recovery_abs_preserves_typevar(self):
         operand_typevar = TypeVariable(name="abs_operand")

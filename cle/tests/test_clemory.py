@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import sys
 import struct
 import timeit
+import unittest
 
 import cffi
 import pytest
@@ -9,6 +11,7 @@ import pytest
 import cle
 
 
+@unittest.skipIf(sys.platform == "emscripten", "runtime CFFI compilation is unavailable in Pyodide")
 def test_cclemory():  # pylint: disable=no-member
     # This is a test case for C-backed Clemory.
 

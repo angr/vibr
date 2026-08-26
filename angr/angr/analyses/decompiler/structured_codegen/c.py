@@ -1841,7 +1841,9 @@ class CGoto(CStatement):
             if isinstance(self.target, int):
                 yield f"LABEL_{self.target:#x}", None
             else:
+                yield "*((void *)(", None
                 yield from self.target.c_repr_chunks()
+                yield "))", None
         else:
             yield lbl.name, lbl
         yield ";", self
@@ -3648,7 +3650,7 @@ class CStructuredCodeGenerator(BaseStructuredCodeGenerator, Analysis, Serializab
 
             # nothing has the ability to escape the kernel
             # go in deeper
-            if isinstance(kernel_type, SimStruct):
+            if isinstance(kernel_type, SimStruct) and kernel_type.offsets:
                 field_name, field_offset = max(
                     ((x, y) for x, y in kernel_type.offsets.items() if y <= constant), key=lambda x: x[1]
                 )
@@ -4245,7 +4247,7 @@ class CStructuredCodeGenerator(BaseStructuredCodeGenerator, Analysis, Serializab
         self,
         expr: Expr.Const,
         type_=None,
-        reference_values: dict[SimType, str | bytes | int | float | Function | CExpression] | None = None,
+        reference_values: dict[SimType | str, str | bytes | int | float | Function | CExpression] | None = None,
         variable=None,
         likely_signed=True,
         **kwargs,
@@ -4348,14 +4350,16 @@ class CStructuredCodeGenerator(BaseStructuredCodeGenerator, Analysis, Serializab
             elif function_pointer:
                 self._function_pointers.add(expr_reference_variable)
 
+        var_access = None
         if variable is not None and not reference_values:
-            # _variable() records the variable as in use, which CFunction reads to emit declarations and
-            # CFunctionCall reads to disambiguate call target names
             cvar = self._variable(variable, None)
             offset = self._variable_map.reference_variable_offset(expr)
             var_access = self._access_constant_offset_reference(self._get_variable_reference(cvar), offset, None)
+
+        if var_access is not None:
             if expr.value >= self.min_data_addr:
                 return var_access
+            reference_values["offset"] = var_access
         return CConstant(expr.value, type_, reference_values=reference_values, tags=expr.tags, codegen=self)
 
     def _handle_Expr_UnaryOp(self, expr, type_: SimType | None = None, **kwargs):
@@ -4426,7 +4430,10 @@ class CStructuredCodeGenerator(BaseStructuredCodeGenerator, Analysis, Serializab
         # do we need an intermediate cast?
         if orig_child_signed != expr.is_signed and expr.to_bits > expr.from_bits and child.type is not None:
             # this is a problem. sign-extension only happens when the SOURCE of the cast is signed
-            child_ty = self.default_simtype_from_bits(child.type.size, expr.is_signed)
+            child_size = child.type.size
+            child_ty = self.default_simtype_from_bits(
+                expr.from_bits if child_size is None else child_size, expr.is_signed
+            )
             child = CTypeCast(None, child_ty, child, codegen=self)
 
         return CTypeCast(None, dst_type.with_arch(self.project.arch), child, tags=expr.tags, codegen=self)

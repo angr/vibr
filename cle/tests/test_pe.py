@@ -4,6 +4,7 @@ from __future__ import annotations
 import io
 import os
 import shutil
+import sys
 import struct
 import tempfile
 import unittest
@@ -14,6 +15,7 @@ import cle
 from cle.backends.pe.symbolserver import PDBInfo
 
 TEST_BASE = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.path.join("..", "..", "binaries"))
+requires_pyxdia = unittest.skipIf(sys.platform == "emscripten", "pyxdia is unavailable in Pyodide")
 
 
 def _num_rva_and_sizes_offset(data):
@@ -196,6 +198,7 @@ class TestPEBackend(unittest.TestCase):
         assert tls is not None
         assert len(ld.tls.modules) == 1
 
+    @requires_pyxdia
     def test_pdb(self):
         exe = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.exe")
         pdb = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.pdb")
@@ -245,6 +248,7 @@ class TestPEBackend(unittest.TestCase):
         ld = cle.Loader(exe, auto_load_libs=False)
         assert ld.find_symbol("main")
 
+    @requires_pyxdia
     def test_debug_symbol_paths_flat_layout(self):
         """Test loading PDB from debug_symbol_paths with flat layout."""
         exe = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.exe")
@@ -259,6 +263,7 @@ class TestPEBackend(unittest.TestCase):
             ld = cle.Loader(exe, auto_load_libs=False, load_debug_info=True, main_opts={"debug_symbol_paths": [tmpdir]})
             assert ld.find_symbol("authenticate")
 
+    @requires_pyxdia
     def test_debug_symbol_paths_symbol_store_layout(self):
         """Test loading PDB from debug_symbol_paths with symbol store layout."""
         exe = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.exe")
@@ -284,6 +289,7 @@ class TestPEBackend(unittest.TestCase):
                 )
                 assert ld.find_symbol("authenticate")
 
+    @requires_pyxdia
     def test_debug_symbol_paths_multiple_paths(self):
         """Test loading PDB with multiple debug_symbol_paths."""
         exe = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.exe")
@@ -304,6 +310,7 @@ class TestPEBackend(unittest.TestCase):
                 )
                 assert ld.find_symbol("authenticate")
 
+    @requires_pyxdia
     def test_debug_symbol_paths_nonexistent_path(self):
         """Test that nonexistent debug_symbol_paths are handled gracefully."""
         exe = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.exe")

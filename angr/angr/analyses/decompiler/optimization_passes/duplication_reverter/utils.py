@@ -64,10 +64,7 @@ def bfs_list_blocks(start_block: Block, graph: nx.DiGraph):
         if len(children) == 1:
             blocks += children
         elif len(children) == 2:
-            if not isinstance(last_src_stmt, ConditionalJump):
-                stmt_type = getattr(last_src_stmt, "kind_name", None) or type(last_src_stmt).__name__
-                raise UnsupportedAILNodeError(f"Block {source.addr:#x} has two successors but ends in {stmt_type}")
-            if_stmt: ConditionalJump = last_src_stmt
+            if_stmt: ConditionalJump = source.statements[-1]
             if children[0].addr == if_stmt.true_target.value:
                 blocks += [children[0], children[1]]
             else:
@@ -139,6 +136,24 @@ def deepcopy_ail_anyjump(stmt: Jump | ConditionalJump, idx=1):
     raise ValueError(
         "Attempting to deepcopy non-jump stmt, likely happen to a "
         "block ending in no jump. Place a jump there to fix it."
+    )
+
+
+def set_conditional_jump_target_addrs(
+    stmt: ConditionalJump,
+    true_target_addr: int,
+    false_target_addr: int,
+) -> ConditionalJump:
+    true_expr: Const = stmt.true_target
+    false_expr: Const = stmt.false_target
+    return ConditionalJump(
+        stmt.idx,
+        stmt.condition,
+        Const(true_expr.idx, true_target_addr, true_expr.bits, **true_expr.tags.copy()),
+        Const(false_expr.idx, false_target_addr, false_expr.bits, **false_expr.tags.copy()),
+        true_target_idx=stmt.true_target_idx,
+        false_target_idx=stmt.false_target_idx,
+        **stmt.tags.copy(),
     )
 
 

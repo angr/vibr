@@ -1,19 +1,25 @@
 {
  "schema": 1,
- "generated_at": "2026-08-26T14:01:31+00:00",
- "selection_generated_at": "2026-08-26T14:01:31+00:00",
+ "generated_at": "2026-08-26T22:31:57+00:00",
+ "selection_generated_at": "2026-08-26T22:31:57+00:00",
  "components": {
   "angr": {
    "upstream": "https://github.com/angr/angr",
    "default_branch": "master",
-   "base": "829ea98f577ac04d9cd3927ddc868713a5b0a1ab",
-   "head": "a6eed08154f6ea82b68f81a3b5d62c0592b0824b",
+   "base": "4f6489858d81856cd7d0f1f6f034b59f52fabaa7",
+   "head": "7384750f28322fdc0efb05200bf898533e9ccf06",
    "applied": [
     {
      "number": 6655,
      "title": "CFGFast: rebuild function graphs for fresh models",
      "url": "https://github.com/angr/angr/pull/6655",
-     "head_sha": "1be0c3d8b02fe03bf1b664a464afe1b900030b61"
+     "head_sha": "a52babc629ee2a76076ab4e8a2e898fc28f60cec"
+    },
+    {
+     "number": 6658,
+     "title": "Add first-class WebAssembly runtime support",
+     "url": "https://github.com/angr/angr/pull/6658",
+     "head_sha": "393acfff4df97d589335d9c375a2dfd36997e021"
     },
     {
      "number": 6685,
@@ -35,9 +41,9 @@
     },
     {
      "number": 6736,
-     "title": "Decompiler: reject nonconditional DuplicationReverter branches",
+     "title": "Decompiler: preserve supergraph statement order",
      "url": "https://github.com/angr/angr/pull/6736",
-     "head_sha": "58c2d2638e34c8c9ce9486785f03c19db7ec7354"
+     "head_sha": "62d6d9b5a6dc708574673980bada6c80e4fe3b54"
     },
     {
      "number": 6745,
@@ -47,15 +53,15 @@
     },
     {
      "number": 6746,
-     "title": "Decompiler: guard integer constant conversion folding",
+     "title": "AIL: preserve unary VEX conversion types",
      "url": "https://github.com/angr/angr/pull/6746",
-     "head_sha": "f7f88cca4bed31deea72f0d46eb9cebb7f774fb2"
+     "head_sha": "806dd2d1bff2a444befb6b2754216ea206110350"
     },
     {
      "number": 6747,
      "title": "ReachingDefinitions: visit DirtyExpression inputs",
      "url": "https://github.com/angr/angr/pull/6747",
-     "head_sha": "fbb3fec4e945bec1afe447ee91b2c48f68012e57"
+     "head_sha": "6f8ccde004c7d3024aa337c39cac4b372c4cf02f"
     },
     {
      "number": 6748,
@@ -67,7 +73,7 @@
      "number": 6751,
      "title": "Preserve DirtyExpression guard and memory address during rewriting",
      "url": "https://github.com/angr/angr/pull/6751",
-     "head_sha": "4e530564aea90c3eafd31f2277f9a5db8163d060"
+     "head_sha": "b344d5ef43990bd5bba526bd7a8e8d969011080a"
     },
     {
      "number": 6793,
@@ -109,6 +115,7 @@
      "number": 6808,
      "title": "SpillingCFG: Index the nodes that an edge inserts into the graph",
      "url": "https://github.com/angr/angr/pull/6808",
+     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
      "head_sha": "dba0424bcbb926061021090ea338baa69968bbc5"
     },
     {
@@ -196,10 +203,23 @@
      "head_sha": "218d0ce0889e210fb74a00822bee5701e08cf947"
     },
     {
+     "number": 6848,
+     "title": "Decompiler: Reset Thumb IT state at function entry",
+     "url": "https://github.com/angr/angr/pull/6848",
+     "head_sha": "67f352ebc49dc79f5f9f245a2b34b24cab7f053f"
+    },
+    {
      "number": 6850,
      "title": "Decompiler: Preserve indirect store addresses across type casts",
      "url": "https://github.com/angr/angr/pull/6850",
      "head_sha": "83d7c034bac525a462bdfab400e76d50f4a798fe"
+    },
+    {
+     "number": 6853,
+     "title": "Decompiler: Preserve virtual-variable bindings across index collisions",
+     "url": "https://github.com/angr/angr/pull/6853",
+     "resolution": "union merge of tests: tests/analyses/decompiler/test_dephication_rewriting.py",
+     "head_sha": "7d03fb177c5ac7daf71e1d7892802737319015c1"
     },
     {
      "number": 6865,
@@ -258,6 +278,7 @@
      "number": 6908,
      "title": "Decompiler: Isolate structuring optimization probes",
      "url": "https://github.com/angr/angr/pull/6908",
+     "resolution": "union merge of tests: tests/analyses/decompiler/test_variable_map.py",
      "head_sha": "a3ee8a973d17d9f07a5fee0f2b2ac9ca86f1679e"
     },
     {
@@ -317,12 +338,6 @@
      "head_sha": "60ffe9e2e9610347ee261bdfd866bc83cd4a378c"
     },
     {
-     "number": 6941,
-     "title": "Bound the memory kb.decompilations holds when decompiling many functions",
-     "url": "https://github.com/angr/angr/pull/6941",
-     "head_sha": "78536551264062fd1d30cafe117f338a3541cf2f"
-    },
-    {
      "number": 6942,
      "title": "Decompiler: Remove the whole orphaned chain in LoweredSwitchSimplifier",
      "url": "https://github.com/angr/angr/pull/6942",
@@ -339,7 +354,6 @@
      "number": 6944,
      "title": "Serialize the AIL switch-case head marker instead of losing the cache",
      "url": "https://github.com/angr/angr/pull/6944",
-     "resolution": "union merge of tests: tests/serialization/test_decompilation_cache_serialization.py",
      "head_sha": "15bc51b2b1236842efc964830db589c384009e78"
     },
     {
@@ -421,11 +435,49 @@
      "head_sha": "379d6d783d052a67e566b883fc3829c520cdb6cb"
     },
     {
+     "number": 6960,
+     "title": "CFGBase: Do not let a zero-size node anchor a normalization group",
+     "url": "https://github.com/angr/angr/pull/6960",
+     "head_sha": "5b95568b37ee140edbf29e3a2e367e8e8e9272d5"
+    },
+    {
      "number": 6961,
      "title": "AIL: Carry a gymrat Dirty statement through with its memory effects unset",
      "url": "https://github.com/angr/angr/pull/6961",
      "resolution": "union merge of tests: tests/ailment/test_irsb.py",
      "head_sha": "8bc951d307b1f3994d3cff2ffe5c41b01f6dae63"
+    },
+    {
+     "number": 6963,
+     "title": "Decompiler: rebuild duplication reverter jump targets",
+     "url": "https://github.com/angr/angr/pull/6963",
+     "head_sha": "902ebc181a9b34e310cb2acd4738d2473aa3bdb5"
+    },
+    {
+     "number": 6966,
+     "title": "Decompiler: handle sizeless children in widening casts",
+     "url": "https://github.com/angr/angr/pull/6966",
+     "resolution": "union merge of tests: tests/analyses/decompiler/test_structured_codegen.py",
+     "head_sha": "491f2cc9b44d1534a336bb8730d68c72775f577d"
+    },
+    {
+     "number": 6969,
+     "title": "SwitchDefaultCaseDuplicator: do not select constructs with no default-case block",
+     "url": "https://github.com/angr/angr/pull/6969",
+     "head_sha": "a06342763f667894e1ea84f18affb5466fd20d15"
+    },
+    {
+     "number": 6971,
+     "title": "MultiValues: make copy construction copy the offset map",
+     "url": "https://github.com/angr/angr/pull/6971",
+     "head_sha": "f27aded6e73c1e5467368f688857a412f647ca4d"
+    },
+    {
+     "number": 6974,
+     "title": "Decompiler: render expression jumps as computed gotos",
+     "url": "https://github.com/angr/angr/pull/6974",
+     "resolution": "union merge of tests: tests/analyses/decompiler/test_structured_codegen.py",
+     "head_sha": "032c6937b156f37ef018f31fc20f02d32ab91456"
     }
    ],
    "skipped": [
@@ -472,6 +524,12 @@
      "reason": "conflicts with the applied set: angr/knowledge_plugins/functions/soot_function.py"
     },
     {
+     "number": 6941,
+     "title": "Bound the memory kb.decompilations holds when decompiling many functions",
+     "url": "https://github.com/angr/angr/pull/6941",
+     "reason": "conflicts with the applied set: angr/knowledge_plugins/structured_code.py"
+    },
+    {
      "number": 6956,
      "title": "Decompiler: Recover variadic arguments through gettext",
      "url": "https://github.com/angr/angr/pull/6956",
@@ -485,13 +543,6 @@
     }
    ],
    "excluded": [
-    {
-     "number": 6658,
-     "title": "Add first-class WebAssembly runtime support",
-     "url": "https://github.com/angr/angr/pull/6658",
-     "reason": "conflicts with the upstream default branch",
-     "depends_on": []
-    },
     {
      "number": 6679,
      "title": "AIL: preserve LL/SC result definitions and effects",
@@ -510,13 +561,6 @@
      "number": 6743,
      "title": "Decompiler: reject ambiguous duplication reinsertion candidates",
      "url": "https://github.com/angr/angr/pull/6743",
-     "reason": "draft",
-     "depends_on": []
-    },
-    {
-     "number": 6752,
-     "title": "Decompiler: preserve VEX dirty effects through simplification",
-     "url": "https://github.com/angr/angr/pull/6752",
      "reason": "draft",
      "depends_on": []
     },
@@ -562,20 +606,6 @@
      "title": "Decompiler: preserve function entries during deduplication",
      "url": "https://github.com/angr/angr/pull/6845",
      "reason": "checks not green: Test Results concluded FAILURE",
-     "depends_on": []
-    },
-    {
-     "number": 6848,
-     "title": "Decompiler: Reset Thumb IT state at function entry",
-     "url": "https://github.com/angr/angr/pull/6848",
-     "reason": "checks not green: Report is QUEUED, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS",
-     "depends_on": []
-    },
-    {
-     "number": 6853,
-     "title": "Decompiler: Preserve virtual-variable bindings across index collisions",
-     "url": "https://github.com/angr/angr/pull/6853",
-     "reason": "conflicts with the upstream default branch",
      "depends_on": []
     },
     {
@@ -628,13 +658,6 @@
      "depends_on": []
     },
     {
-     "number": 6960,
-     "title": "CFGBase: Do not let a zero-size node anchor a normalization group",
-     "url": "https://github.com/angr/angr/pull/6960",
-     "reason": "checks not green: ci / Typecheck concluded FAILURE",
-     "depends_on": []
-    },
-    {
      "number": 6962,
      "title": "Decompiler: Respect the updated entry node address in DeadblockRemover",
      "url": "https://github.com/angr/angr/pull/6962",
@@ -642,24 +665,31 @@
      "depends_on": []
     },
     {
-     "number": 6963,
-     "title": "Decompiler: rebuild duplication reverter jump targets",
-     "url": "https://github.com/angr/angr/pull/6963",
-     "reason": "checks not green: ci / Typecheck is IN_PROGRESS, Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, ci / Test (0) is IN_PROGRESS, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (3) is IN_PROGRESS, ci / Test (4) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS, ci / Test (6) is IN_PROGRESS, ci / Test (7) is IN_PROGRESS, ci / Test (8) is IN_PROGRESS, ci / Test (9) is IN_PROGRESS, ci / Decompiler Snapshot Testing (0) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING",
-     "depends_on": []
-    },
-    {
      "number": 6964,
      "title": "SimType: check the alignment sentinel before converting it to bits",
      "url": "https://github.com/angr/angr/pull/6964",
-     "reason": "checks not green: ci / Build is IN_PROGRESS, Build is IN_PROGRESS, Test installation (ubuntu-24.04, py3.14) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING",
+     "reason": "checks not green: ci / Typecheck concluded FAILURE",
      "depends_on": []
     },
     {
-     "number": 6965,
-     "title": "CCodeGen: do not descend into a struct kernel that has no fields",
-     "url": "https://github.com/angr/angr/pull/6965",
-     "reason": "checks not green: ci / Build is IN_PROGRESS, Build is IN_PROGRESS, Test Rust packages is IN_PROGRESS, Test installation (ubuntu-24.04, py3.14) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING",
+     "number": 6970,
+     "title": "ReturnMaker: report a return register the architecture does not have",
+     "url": "https://github.com/angr/angr/pull/6970",
+     "reason": "checks not green: ci / Typecheck concluded FAILURE",
+     "depends_on": []
+    },
+    {
+     "number": 6972,
+     "title": "RegionIdentifier: take the function entry as the region start node",
+     "url": "https://github.com/angr/angr/pull/6972",
+     "reason": "checks not green: ci / Typecheck concluded FAILURE",
+     "depends_on": []
+    },
+    {
+     "number": 6973,
+     "title": "StructurerBase: do not cut a block where a temporary crosses the cut",
+     "url": "https://github.com/angr/angr/pull/6973",
+     "reason": "checks not green: ci / Typecheck concluded FAILURE",
      "depends_on": []
     }
    ]
@@ -710,13 +740,13 @@
    "upstream": "https://github.com/angr/claripy",
    "default_branch": "master",
    "base": "6ff4486278af191304ae8188ed6faa643cf43087",
-   "head": "c6f59854420b3099391d25ea43838b00f0e30967",
+   "head": "c59ffe6bbec2b4d5c14eb0b3ae310349a55bed62",
    "applied": [
     {
      "number": 737,
      "title": "Select the Pyodide Z3 build on Emscripten",
      "url": "https://github.com/angr/claripy/pull/737",
-     "head_sha": "809d89075221cc5f232d92685f32432d117f0fa9"
+     "head_sha": "8739713e1681510aa518bfab72beecdfa3e2529d"
     }
    ],
    "skipped": [],
@@ -734,8 +764,14 @@
    "upstream": "https://github.com/angr/cle",
    "default_branch": "master",
    "base": "46a37333f4f59b0facf8774ee743ebc4cc074e9b",
-   "head": "c1887dd0ed32c31ae46365bd627aeb3c5c1e5056",
+   "head": "a0a8a5ecc342fad56b51a8007b5cda1dfa7419d8",
    "applied": [
+    {
+     "number": 704,
+     "title": "Test CLE under Pyodide",
+     "url": "https://github.com/angr/cle/pull/704",
+     "head_sha": "88a5d30cb01e761ab5f369e800dd56afb58dee9d"
+    },
     {
      "number": 714,
      "title": "SRec: Fix record matching and entry point parsing",
@@ -764,6 +800,7 @@
      "number": 721,
      "title": "Pack and unpack words struct cannot describe",
      "url": "https://github.com/angr/cle/pull/721",
+     "resolution": "union merge of tests: tests/test_clemory.py",
      "head_sha": "df42c72e14dc1ba567de054e130bc8e02c33528b"
     },
     {
@@ -812,6 +849,7 @@
      "number": 732,
      "title": "Stop indexing PE and ELF header tables past their declared length",
      "url": "https://github.com/angr/cle/pull/732",
+     "resolution": "union merge of tests: tests/test_pe.py",
      "head_sha": "bc32f36e39f061be59bd31bfd69f879dd5f1a6da"
     },
     {
@@ -860,6 +898,7 @@
      "number": 757,
      "title": "PE: Resolve the machine type of a ReadyToRun image built for another system",
      "url": "https://github.com/angr/cle/pull/757",
+     "resolution": "union merge of tests: tests/test_pe.py",
      "head_sha": "eb5769491392a59a6117925069896f8b8de3945c"
     },
     {
@@ -1021,18 +1060,6 @@
    ],
    "excluded": [
     {
-     "number": 704,
-     "title": "Test CLE under Pyodide",
-     "url": "https://github.com/angr/cle/pull/704",
-     "reason": "depends on angr/angr#6658 which is excluded: conflicts with the upstream default branch",
-     "depends_on": [
-      "angr/angr#6658",
-      "angr/claripy#737",
-      "angr/pypcode#283",
-      "angr/pyvex#555"
-     ]
-    },
-    {
      "number": 718,
      "title": "Fix Clemory backer removal and the BackedCGC backend",
      "url": "https://github.com/angr/cle/pull/718",
@@ -1086,8 +1113,14 @@
    "upstream": "https://github.com/angr/pypcode",
    "default_branch": "master",
    "base": "559aacdc9d363fd19477d9daa40721279cd99248",
-   "head": "d465a6dadc8015fac1b5e14f2f685685ea2eb621",
+   "head": "e2954446b77dec8719d11605a8d2255778091862",
    "applied": [
+    {
+     "number": 283,
+     "title": "Add Pyodide WebAssembly wheel support",
+     "url": "https://github.com/angr/pypcode/pull/283",
+     "head_sha": "3e6f4adcdb9fc9f718d9ba81b7dfcf7232008ce3"
+    },
     {
      "number": 288,
      "title": "Fix segfault when a delay-slot instruction has no p-code",
@@ -1102,20 +1135,7 @@
     }
    ],
    "skipped": [],
-   "excluded": [
-    {
-     "number": 283,
-     "title": "Add Pyodide WebAssembly wheel support",
-     "url": "https://github.com/angr/pypcode/pull/283",
-     "reason": "depends on angr/angr#6658 which is excluded: conflicts with the upstream default branch",
-     "depends_on": [
-      "angr/angr#6658",
-      "angr/claripy#737",
-      "angr/cle#702",
-      "angr/pyvex#555"
-     ]
-    }
-   ]
+   "excluded": []
   },
   "pyvex": {
    "upstream": "https://github.com/angr/pyvex",

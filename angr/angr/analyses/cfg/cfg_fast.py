@@ -1658,7 +1658,7 @@ class CFGFast(ForwardAnalysis[CFGNode, CFGNode, CFGJob, int, object], CFGBase): 
         if not self._model_was_provided:
             self.functions.callgraph.clear_edges()
             for function in self.functions.values():
-                function._clear_transition_graph()
+                function._clear_transition_graph()  # pylint: disable=protected-access
                 self.functions.set_func_block_count(function.addr, 0)
 
         # Scan for __x86_return_thunk and friends

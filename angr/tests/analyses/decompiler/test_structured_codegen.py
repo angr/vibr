@@ -4,8 +4,11 @@ from __future__ import annotations
 
 __package__ = __package__ or "tests.analyses.decompiler"  # pylint:disable=redefined-builtin
 
+import os
 import unittest
 from typing import Any, cast
+from unittest.mock import patch
+from types import SimpleNamespace
 
 import angr
 from angr.ailment import Expr, Manager, Stmt
@@ -58,15 +61,51 @@ from angr.analyses.decompiler.structured_codegen.c import (
 )
 from angr.sim_type import SimStruct, SimTypeInt, SimTypePointer
 from angr.sim_variable import SimRegisterVariable
+from angr.analyses.decompiler.structured_codegen.c import (
+    CBinaryOp,
+    CConstant,
+    CStructuredCodeGenerator,
+    CTypeCast,
+)
+from angr.sim_type import SimTypeBottom
+from angr.analyses.decompiler.structured_codegen.c import CExpression, CGoto, CUnaryOp
+from angr.sim_type import SimTypeInt, SimTypePointer
+from tests.common import bin_location
+
+test_location = os.path.join(bin_location, "tests")
+
+
+class _RenderedExpression(CExpression):
+    def __init__(self, text, ty=None, *, codegen):
+        super().__init__(codegen=codegen)
+        self.text = text
+        self._type = ty
+
+    @property
+    def type(self):
+        return self._type
+
+    def c_repr_chunks(self, indent=0, asexpr=False):
+        yield self.text, self
 
 
 class TestConvertRendering(unittest.TestCase):
     """How CStructuredCodeGenerator renders Convert expressions of assorted widths."""
 
+    codegen: CStructuredCodeGenerator
+
     @classmethod
     def setUpClass(cls):
         # any decompilation will do; all we need is a codegen instance to render expressions with
         cls.codegen = _make_codegen()
+        proj = angr.load_shellcode(b"\x31\xc0\xc3", arch="AMD64")  # xor eax, eax; ret
+        cfg = proj.analyses.CFGFast(normalize=True)
+        codegen = proj.analyses.Decompiler(cfg.functions[0], cfg=cfg).codegen
+        assert isinstance(codegen, CStructuredCodeGenerator)
+        cls.codegen = codegen
+        proj = angr.Project(os.path.join(test_location, "x86_64", "fauxware"), auto_load_libs=False)
+        cfg = proj.analyses.CFGFast(normalize=True)
+        cls.codegen = proj.analyses.Decompiler(cfg.functions["main"], cfg=cfg).codegen
 
     def _render(self, from_bits: int, to_bits: int, value: int = 0x1234) -> str:
         conv = Expr.Convert(0, from_bits, to_bits, False, Expr.Const(0, value, from_bits))
@@ -89,6 +128,39 @@ class TestConvertRendering(unittest.TestCase):
         assert self._render(1, 5, value=1) == "(char)1"
         assert self._render(8, 12, value=3) == "(unsigned short)3"
         assert self._render(32, 64, value=3) == "(unsigned long long)3"
+
+    def test_widening_sizeless_child_uses_ail_source_width(self):
+        unknown_type = SimTypeBottom().with_arch(self.codegen.project.arch)
+        child = CBinaryOp(
+            "Shr",
+            CConstant(1, unknown_type, codegen=self.codegen),
+            CConstant(2, unknown_type, codegen=self.codegen),
+            codegen=self.codegen,
+        )
+        assert child.type.size is None
+
+        conv = Expr.Convert(0, 1, 64, True, Expr.Const(0, 1, 1))
+        with patch.object(self.codegen, "_handle", return_value=child):
+            rendered = self.codegen._handle_Expr_Convert(conv)
+
+        assert isinstance(rendered, CTypeCast)
+        assert isinstance(rendered.expr, CTypeCast)
+        assert rendered.expr.dst_type.size == conv.from_bits
+        assert getattr(rendered.expr.dst_type, "signed", None) is True
+        assert rendered.c_repr() == "(long long)(int1_t)(1 >> 2)"
+
+    def test_widening_known_child_keeps_inferred_width(self):
+        known_type = self.codegen.default_simtype_from_bits(16, signed=False)
+        child = CConstant(1, known_type, codegen=self.codegen)
+        conv = Expr.Convert(0, 32, 64, True, Expr.Const(0, 1, 32))
+        with patch.object(self.codegen, "_handle", return_value=child):
+            rendered = self.codegen._handle_Expr_Convert(conv)
+
+        assert isinstance(rendered, CTypeCast)
+        assert isinstance(rendered.expr, CTypeCast)
+        assert rendered.expr.dst_type.size == known_type.size
+        assert getattr(rendered.expr.dst_type, "signed", None) is True
+        assert rendered.c_repr() == "(long long)(short)1"
 
 
 class TestStoreRendering(unittest.TestCase):
@@ -283,6 +355,42 @@ class TestPostfixExpressionRendering(unittest.TestCase):
         assert CVariableField(indexed_struct, self.field, False, codegen=self.codegen).c_repr() == (
             "(*(ptr_ptr))[0].field_0"
         )
+
+
+class TestGotoRendering(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.codegen = SimpleNamespace(
+            comment_gotos=False,
+            map_addr_to_label={},
+            next_ident=lambda name: name,
+            next_node_idx=lambda: 0,
+        )
+
+    def test_integer_and_pointer_targets_are_cast_to_void_pointer(self):
+        target_types = {
+            "integer_target": SimTypeInt(signed=False),
+            "pointer_target": SimTypePointer(SimTypeInt(signed=False)),
+        }
+
+        for name, target_type in target_types.items():
+            with self.subTest(target_type=name):
+                target = _RenderedExpression(name, target_type, codegen=self.codegen)
+                chunks = list(CGoto(target, None, codegen=self.codegen).c_repr_chunks())
+
+                self.assertEqual("".join(text for text, _ in chunks), f"goto *((void *)({name}));\n")
+                self.assertIn((name, target), chunks)
+
+    def test_computed_goto_preserves_dereferenced_target(self):
+        target = CUnaryOp("Dereference", _RenderedExpression("target", codegen=self.codegen), codegen=self.codegen)
+        chunks = CGoto(target, None, codegen=self.codegen).c_repr_chunks()
+
+        self.assertEqual("".join(text for text, _ in chunks), "goto *((void *)(*(target)));\n")
+
+    def test_constant_jump_is_a_direct_goto(self):
+        chunks = CGoto(0x400000, None, codegen=self.codegen).c_repr_chunks()
+
+        self.assertEqual("".join(text for text, _ in chunks), "goto LABEL_0x400000;\n")
 
 
 if __name__ == "__main__":
