@@ -1,0 +1,247 @@
+from __future__ import annotations
+
+import ntpath
+import struct
+
+import archinfo
+from minidump import minidumpfile
+from minidump.streams import SystemInfoStream
+
+from cle.backends.backend import Backend, register_backend
+from cle.backends.region import Section, Segment
+from cle.errors import CLEError
+
+
+class MinidumpMissingStreamError(Exception):
+    def __init__(self, stream, message=None):
+        super().__init__()
+        self.message = message
+        self.stream = stream
+
+
+class MinidumpSection(Section):
+    """
+    A module loaded in the dumped process.
+
+    A minidump records each module's base address and image size but not its section table, so there is nothing to
+    derive real permissions from; every module reports read, write and execute, as the backend's segments do.
+    """
+
+    def __init__(self, name, offset, vaddr, filesize, memsize):
+        super().__init__(name, offset, vaddr, memsize)
+        # Section makes filesize equal memsize. A minidump captures selected memory ranges rather than whole
+        # images, so only the captured prefix of the module is actually present in the file.
+        self.filesize = filesize
+
+    @property
+    def is_readable(self):
+        return True
+
+    @property
+    def is_writable(self):
+        return True
+
+    @property
+    def is_executable(self):
+        return True
+
+    @property
+    def only_contains_uninitialized_data(self):
+        return self.filesize == 0
+
+
+class Minidump(Backend):
+    is_default = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.os = "windows"
+        self.supports_nx = True
+        if self.binary is None:
+            self._mdf = minidumpfile.MinidumpFile.parse_bytes(self._binary_stream.read())
+        else:
+            self._mdf = minidumpfile.MinidumpFile.parse(self.binary)
+
+        self.wow64 = False
+
+        if self._arch is None:
+            if getattr(self._mdf, "sysinfo", None) is None:
+                raise MinidumpMissingStreamError("SystemInfo", "The architecture was not specified")
+            arch = self._mdf.sysinfo.ProcessorArchitecture
+            if arch == SystemInfoStream.PROCESSOR_ARCHITECTURE.AMD64:
+                if any(module.name.endswith("wow64.dll") for module in self._mdf.modules.modules):
+                    self.wow64 = True
+                    self.set_arch(archinfo.ArchX86())
+                else:
+                    self.set_arch(archinfo.ArchAMD64())
+            elif arch == SystemInfoStream.PROCESSOR_ARCHITECTURE.INTEL:
+                self.set_arch(archinfo.ArchX86())
+            else:
+                # has not been tested with other architectures
+                raise CLEError("Loading minidumps is not implemented for this architecture")
+
+        if self._mdf.memory_segments_64 is not None:
+            segments = self._mdf.memory_segments_64.memory_segments
+        elif self._mdf.memory_segments is not None:
+            segments = self._mdf.memory_segments.memory_segments
+        else:
+            raise MinidumpMissingStreamError("MemoryList", "The memory segments were not defined")
+
+        for segment in segments:
+            data = segment.read(segment.start_virtual_address, segment.size, self._mdf.file_handle)
+            self.segments.append(
+                Segment(segment.start_file_address, segment.start_virtual_address, segment.size, segment.size)
+            )
+            self.memory.add_backer(segment.start_virtual_address, data)
+
+        for module in self._mdf.modules.modules:
+            # A minidump captures only the memory ranges the dump writer selected, so a module's image may be
+            # present in full, in part, or not at all. Map as much of it as the capture covers from the module's
+            # base address onwards. A module with nothing captured still gets a section: its address range is
+            # what tells an analysis which module an address belongs to.
+            segment = self.segments.find_region_containing(module.baseaddress)
+            if segment is None:
+                file_offset = 0
+                file_size = 0
+            else:
+                file_offset = segment.offset + module.baseaddress - segment.vaddr
+                # An image is normally captured as several ranges, one per run of pages sharing a protection.
+                # Ranges that are adjacent in memory are written adjacently in the file, so such a module still
+                # occupies a single range of the file.
+                captured_end = segment.vaddr + segment.memsize
+                captured_file_end = segment.offset + segment.memsize
+                while captured_end - module.baseaddress < module.size:
+                    following = self.segments.find_region_containing(captured_end)
+                    if following is None or following.offset != captured_file_end:
+                        break
+                    captured_end += following.memsize
+                    captured_file_end += following.memsize
+                file_size = min(module.size, captured_end - module.baseaddress)
+            section = MinidumpSection(module.name, file_offset, module.baseaddress, file_size, module.size)
+            self.sections.append(section)
+            self.sections_map[ntpath.basename(section.name)] = section
+
+        self._thread_data = {}
+
+        for thread in self._mdf.threads.threads:
+            tid = thread.ThreadId
+            teb = thread.Teb
+            self._binary_stream.seek(thread.ThreadContext.Rva)  # pylint: disable=undefined-loop-variable
+            data = self._binary_stream.read(thread.ThreadContext.DataSize)  # pylint: disable=undefined-loop-variable
+            self._binary_stream.seek(0)
+            self._thread_data[tid] = (teb, data)
+
+    def close(self):
+        super().close()
+        self._mdf.file_handle.close()
+        del self._mdf
+
+    @staticmethod
+    def is_compatible(stream):
+        identstring = stream.read(4)
+        stream.seek(0)
+        return identstring == b"MDMP"
+
+    @property
+    def threads(self):
+        return list(self._thread_data)
+
+    def thread_registers(self, thread=None):
+        if thread is None:
+            thread = self.threads[0]
+
+        teb, data = self._thread_data[thread]
+
+        if self.arch.name == "AMD64" or self.wow64:
+            fmt = "QQQQQQIIHHHHHHIQQQQQQQQQQQQQQQQQQQQQQQ"
+            fmt_registers = {
+                #'fs':     11, 'gs':  12,
+                "eflags": 14,
+                "rax": 21,
+                "rcx": 22,
+                "rdx": 23,
+                "rbx": 24,
+                "rsp": 25,
+                "rbp": 26,
+                "rsi": 27,
+                "rdi": 28,
+                "r8": 29,
+                "r9": 30,
+                "r10": 31,
+                "r11": 32,
+                "r12": 33,
+                "r13": 34,
+                "r14": 35,
+                "r15": 36,
+                "rip": 37,
+            }
+        elif self.arch.name == "X86":
+            fmt = "IIIIIII112xIIIIIIIIIIIIIIII512x"
+            fmt_registers = {
+                #'gs':     7,  'fs':  8,
+                "edi": 11,
+                "esi": 12,
+                "ebx": 13,
+                "edx": 14,
+                "ecx": 15,
+                "eax": 16,
+                "ebp": 17,
+                "eip": 18,
+                "eflags": 20,
+                "esp": 21,
+            }
+        else:
+            raise CLEError("Deserializing minidump registers is not implemented for this architecture")
+        members = struct.unpack_from(fmt, data)
+        thread_registers = {}
+        for register, position in fmt_registers.items():
+            thread_registers[register] = members[position]
+
+        # The segment base lives in the thread's TEB rather than in its saved context, and a dump that captured only
+        # a few memory ranges usually does not include the TEB page. Leave the register out when it cannot be read,
+        # so that everything the context does record stays usable.
+        if self.arch.name == "AMD64" or self.wow64:
+            try:
+                thread_registers["gs_const"] = self.memory.unpack_word(teb + 0x30)
+            except KeyError:
+                pass
+            if self.arch.name == "AMD64":
+                NUM_XMM_REGS = 16
+                xmms = struct.unpack_from("16s" * NUM_XMM_REGS, data, offset=0x1A0)
+                thread_registers |= {
+                    f"xmm{i}": int.from_bytes(xmm, "little", signed=False) for i, xmm in enumerate(xmms)
+                }
+        elif self.arch.name == "X86":
+            try:
+                thread_registers["fs"] = self.memory.unpack_word(teb + 0x18)
+            except KeyError:
+                pass
+
+        if self.wow64:
+            register_translation = [
+                ("edi", "rdi"),
+                ("esi", "rsi"),
+                ("ebx", "rbx"),
+                ("edx", "rdx"),
+                ("ecx", "rcx"),
+                ("eax", "rax"),
+                ("ebp", "rbp"),
+                ("eip", "rip"),
+                ("eflags", "eflags"),
+                ("esp", "rsp"),
+                ("fs", "gs_const"),  # ???
+            ]
+
+            thread_registers = {
+                ereg: thread_registers[rreg] & 0xFFFFFFFF
+                for ereg, rreg in register_translation
+                if rreg in thread_registers
+            }
+
+        return thread_registers
+
+    def get_thread_registers_by_id(self, thread_id):
+        return self.thread_registers(thread_id)
+
+
+register_backend("minidump", Minidump)

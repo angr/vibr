@@ -1,0 +1,44 @@
+{
+  "nodes": {
+    "angr-data": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1782286086,
+        "narHash": "sha256-KkWW47+9mQW0Ox+p2lZokLpdayKHoMGVD4QYr39vw7w=",
+        "owner": "angr",
+        "repo": "angr-data",
+        "rev": "3ddad3c7aec776b9dcc068c43372fdd241685c69",
+        "type": "github"
+      },
+      "original": {
+        "owner": "angr",
+        "repo": "angr-data",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1786593342,
+        "narHash": "sha256-smTKQXMLLStzc8zJevMCckbk3My7SvbbLmPYZUJJKW4=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "6b5e5b7a6631f065bf6908986990b37d845f847f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "6b5e5b7a6631f065bf6908986990b37d845f847f",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "angr-data": "angr-data",
+        "nixpkgs": "nixpkgs"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

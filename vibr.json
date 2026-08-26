@@ -1,0 +1,1077 @@
+{
+ "schema": 1,
+ "generated_at": "2026-08-26T09:09:06+00:00",
+ "selection_generated_at": "2026-08-26T09:02:28+00:00",
+ "components": {
+  "angr": {
+   "upstream": "https://github.com/angr/angr",
+   "default_branch": "master",
+   "base": "829ea98f577ac04d9cd3927ddc868713a5b0a1ab",
+   "head": "da083e7e50e59a76881512631e1ef4bcd6b6db39",
+   "applied": [
+    {
+     "number": 6655,
+     "title": "CFGFast: rebuild function graphs for fresh models",
+     "url": "https://github.com/angr/angr/pull/6655",
+     "head_sha": "1be0c3d8b02fe03bf1b664a464afe1b900030b61"
+    },
+    {
+     "number": 6685,
+     "title": "SSA: guard missing loop stack outstates",
+     "url": "https://github.com/angr/angr/pull/6685",
+     "head_sha": "1461b05c2a30e3b92ccff793ab3b7b8a46221573"
+    },
+    {
+     "number": 6697,
+     "title": "Decompiler: recognize convergent conditional exits",
+     "url": "https://github.com/angr/angr/pull/6697",
+     "head_sha": "2fc2ea92a8d06e2903b38b177e195ea2f202b41c"
+    },
+    {
+     "number": 6731,
+     "title": "Decompiler: terminate trailing C labels with null statements",
+     "url": "https://github.com/angr/angr/pull/6731",
+     "head_sha": "e958d1dde4f82de608930bf5c612f0a0e8d44e0d"
+    },
+    {
+     "number": 6736,
+     "title": "Decompiler: reject nonconditional DuplicationReverter branches",
+     "url": "https://github.com/angr/angr/pull/6736",
+     "head_sha": "58c2d2638e34c8c9ce9486785f03c19db7ec7354"
+    },
+    {
+     "number": 6745,
+     "title": "Decompiler: preserve outer-switch exits through nested switches",
+     "url": "https://github.com/angr/angr/pull/6745",
+     "head_sha": "2ce31f2d9ffa742d3e1cdcc998ba999e8c3c7759"
+    },
+    {
+     "number": 6746,
+     "title": "Decompiler: guard integer constant conversion folding",
+     "url": "https://github.com/angr/angr/pull/6746",
+     "head_sha": "f7f88cca4bed31deea72f0d46eb9cebb7f774fb2"
+    },
+    {
+     "number": 6747,
+     "title": "ReachingDefinitions: visit DirtyExpression inputs",
+     "url": "https://github.com/angr/angr/pull/6747",
+     "head_sha": "fbb3fec4e945bec1afe447ee91b2c48f68012e57"
+    },
+    {
+     "number": 6748,
+     "title": "Ssailification: handle missing address-taken stack definitions",
+     "url": "https://github.com/angr/angr/pull/6748",
+     "head_sha": "12dd52a1da63fbf55a902eea8f026bf788ed1875"
+    },
+    {
+     "number": 6751,
+     "title": "Preserve DirtyExpression guard and memory address during rewriting",
+     "url": "https://github.com/angr/angr/pull/6751",
+     "head_sha": "4e530564aea90c3eafd31f2277f9a5db8163d060"
+    },
+    {
+     "number": 6793,
+     "title": "Support narrow p-code pointer widths",
+     "url": "https://github.com/angr/angr/pull/6793",
+     "head_sha": "1e1af1a83ae2c0ab3d2a264ad2682dce6d2e24ae"
+    },
+    {
+     "number": 6794,
+     "title": "SimWindows: Add the Windows ARM and AArch64 syscall calling conventions.",
+     "url": "https://github.com/angr/angr/pull/6794",
+     "head_sha": "698ceefa134caf907f68d2d9ed99ead0b8bfb8e5"
+    },
+    {
+     "number": 6798,
+     "title": "AIL: Support processor-specific p-code memory spaces",
+     "url": "https://github.com/angr/angr/pull/6798",
+     "head_sha": "614215f8feb5922db2697bc03850660b22dac110"
+    },
+    {
+     "number": 6807,
+     "title": "SimState: Fix unbounded recursion when creating a state on PIC-24 and dsPIC",
+     "url": "https://github.com/angr/angr/pull/6807",
+     "head_sha": "40372bdda75f5894b3d9faaaf33ab741d2fe85e5"
+    },
+    {
+     "number": 6808,
+     "title": "SpillingCFG: Index the nodes that an edge inserts into the graph",
+     "url": "https://github.com/angr/angr/pull/6808",
+     "head_sha": "dba0424bcbb926061021090ea338baa69968bbc5"
+    },
+    {
+     "number": 6809,
+     "title": "CFGFast: Stop aborting when a pre-executed block ends in a failure exit",
+     "url": "https://github.com/angr/angr/pull/6809",
+     "head_sha": "5170e0acbebde7b4ab061fcb473ee2affcc6564d"
+    },
+    {
+     "number": 6813,
+     "title": "ArmElfFastResolver: Stop aborting CFGFast on an add of two registers",
+     "url": "https://github.com/angr/angr/pull/6813",
+     "head_sha": "0b770da7a043163f68d124f5715b56f9ea9b4526"
+    },
+    {
+     "number": 6815,
+     "title": "Decompiler: Structure every overlay child before its parent",
+     "url": "https://github.com/angr/angr/pull/6815",
+     "head_sha": "6d10df3870415aec8cfc3262b0b28fa486a3a38b"
+    },
+    {
+     "number": 6816,
+     "title": "PcodeLifter: Stop a block from running past the bytes it was given",
+     "url": "https://github.com/angr/angr/pull/6816",
+     "head_sha": "bfdff22db45f7b69311f2c1df491fe5fe7195e5d"
+    },
+    {
+     "number": 6822,
+     "title": "JumpTableResolver: Follow the PowerPC branch alignment mask",
+     "url": "https://github.com/angr/angr/pull/6822",
+     "head_sha": "4db9ffa2ba71a030276147fa2f6a8e3188802952"
+    },
+    {
+     "number": 6839,
+     "title": "CFGFast: Read the bytes after a failed lift from memory",
+     "url": "https://github.com/angr/angr/pull/6839",
+     "head_sha": "ead8011216c053e2b2c522c10f71cd5a49c135f1"
+    },
+    {
+     "number": 6844,
+     "title": "CFGFast: Resolve pending indirect jumps in the order the scan found them",
+     "url": "https://github.com/angr/angr/pull/6844",
+     "head_sha": "2b55eba998c509c2e2926011171830aeb62b3a2d"
+    },
+    {
+     "number": 6847,
+     "title": "Decompiler: Recover link registers used as general-purpose registers",
+     "url": "https://github.com/angr/angr/pull/6847",
+     "head_sha": "218d0ce0889e210fb74a00822bee5701e08cf947"
+    },
+    {
+     "number": 6848,
+     "title": "Decompiler: Reset Thumb IT state at function entry",
+     "url": "https://github.com/angr/angr/pull/6848",
+     "head_sha": "0b016584495ca0379052dcf2a05ff870f9c3581e"
+    },
+    {
+     "number": 6850,
+     "title": "Decompiler: Preserve indirect store addresses across type casts",
+     "url": "https://github.com/angr/angr/pull/6850",
+     "head_sha": "83d7c034bac525a462bdfab400e76d50f4a798fe"
+    },
+    {
+     "number": 6880,
+     "title": "JumpTableResolver: Recognize Mach-O zero fill and refuse a table read out of it",
+     "url": "https://github.com/angr/angr/pull/6880",
+     "head_sha": "4144f874d20c60ce7baa761d0741d9ce5cbb4358"
+    },
+    {
+     "number": 6900,
+     "title": "Decompiler: Track ARM registers that save and restore the stack pointer",
+     "url": "https://github.com/angr/angr/pull/6900",
+     "head_sha": "2d9a4c71459ea39c89d320cc474aa8ad7e65e0b6"
+    },
+    {
+     "number": 6905,
+     "title": "Decompiler: Preserve Phoenix switch entry identities",
+     "url": "https://github.com/angr/angr/pull/6905",
+     "head_sha": "2f007f5eda6fcb1ab7da70150f3f0f45892c1282"
+    },
+    {
+     "number": 6908,
+     "title": "Decompiler: Isolate structuring optimization probes",
+     "url": "https://github.com/angr/angr/pull/6908",
+     "head_sha": "a3ee8a973d17d9f07a5fee0f2b2ac9ca86f1679e"
+    },
+    {
+     "number": 6910,
+     "title": "CFGBase: Track the functions with no jobs left instead of rescanning",
+     "url": "https://github.com/angr/angr/pull/6910",
+     "head_sha": "441acb852e41b5f98d34d8b67bb6efebc914a201"
+    },
+    {
+     "number": 6930,
+     "title": "Serialize Soot addresses",
+     "url": "https://github.com/angr/angr/pull/6930",
+     "head_sha": "61f7f10410fbe16ef2adf43d812604cc311031af"
+    },
+    {
+     "number": 6934,
+     "title": "Pcode: Fix partial reads of a unique written wide",
+     "url": "https://github.com/angr/angr/pull/6934",
+     "head_sha": "13e695bb749f6d25b2e9bacced7c64c1e7b6632a"
+    },
+    {
+     "number": 6935,
+     "title": "Suppress pthread static-exit register fill warnings",
+     "url": "https://github.com/angr/angr/pull/6935",
+     "head_sha": "71d1544ebc60abf076b787e54e10552579a56d82"
+    },
+    {
+     "number": 6938,
+     "title": "Decompiler: stop rewriting outer-switch gotos inside nested loops",
+     "url": "https://github.com/angr/angr/pull/6938",
+     "head_sha": "3aa6d0181b3c6d421348c77772eb3f012ae30810"
+    },
+    {
+     "number": 6939,
+     "title": "Decompiler: Decide the last-resort cycle fallback by the parent region",
+     "url": "https://github.com/angr/angr/pull/6939",
+     "head_sha": "8b28aceb11ba7189a720d9d5e9b0fdc3b48bbba0"
+    },
+    {
+     "number": 6940,
+     "title": "Decompiler: Render program bytes that are not valid UTF-8",
+     "url": "https://github.com/angr/angr/pull/6940",
+     "head_sha": "60ffe9e2e9610347ee261bdfd866bc83cd4a378c"
+    },
+    {
+     "number": 6941,
+     "title": "Bound the memory kb.decompilations holds when decompiling many functions",
+     "url": "https://github.com/angr/angr/pull/6941",
+     "head_sha": "78536551264062fd1d30cafe117f338a3541cf2f"
+    },
+    {
+     "number": 6942,
+     "title": "Decompiler: Remove the whole orphaned chain in LoweredSwitchSimplifier",
+     "url": "https://github.com/angr/angr/pull/6942",
+     "head_sha": "552915a914a736277eaac16d91e981d8ffc4460f"
+    },
+    {
+     "number": 6945,
+     "title": "Decompiler: Recover syslog variadic arguments",
+     "url": "https://github.com/angr/angr/pull/6945",
+     "head_sha": "7ae7bf06e228c5e925a1e3bba861a407b02a677f"
+    },
+    {
+     "number": 6946,
+     "title": "Decompiler: Preserve intra-function tail jumps",
+     "url": "https://github.com/angr/angr/pull/6946",
+     "head_sha": "8e2d47f2169b1d1065abaf4e3cf4a97ae3f3dcdf"
+    },
+    {
+     "number": 6947,
+     "title": "Ssailification: Drop a stack phi whose sources do not match its destination",
+     "url": "https://github.com/angr/angr/pull/6947",
+     "head_sha": "cd0ead7b6a9599947b541c4443959de5b297a1ce"
+    },
+    {
+     "number": 6948,
+     "title": "CFGFast: Preserve authoritative function starts during reconstruction",
+     "url": "https://github.com/angr/angr/pull/6948",
+     "head_sha": "556f7365622634563a5b174cddb3b3003ca82824"
+    },
+    {
+     "number": 6950,
+     "title": "Recover semantic main prototypes from libc startup",
+     "url": "https://github.com/angr/angr/pull/6950",
+     "head_sha": "ce759dc8642c43310689cb28feb4d6675c101f08"
+    },
+    {
+     "number": 6951,
+     "title": "sim_type: stop name-keyed memos collapsing distinct anonymous aggregates",
+     "url": "https://github.com/angr/angr/pull/6951",
+     "head_sha": "90510f944091f8575e4847860497f2679e61b1b0"
+    },
+    {
+     "number": 6952,
+     "title": "Decompiler: rebind breaks and continues that no longer reach their target",
+     "url": "https://github.com/angr/angr/pull/6952",
+     "head_sha": "13276372d5c009f0f72c6a53a738698ada022a3e"
+    },
+    {
+     "number": 6953,
+     "title": "Ssailification: seed the SSA traversal from the entry Clinic resolves",
+     "url": "https://github.com/angr/angr/pull/6953",
+     "head_sha": "61129ae057239e23ad9913b91a90775483fd25f8"
+    }
+   ],
+   "skipped": [
+    {
+     "number": 6810,
+     "title": "CFGFast: Do not record a call return site in an unmapped alignment hole",
+     "url": "https://github.com/angr/angr/pull/6810",
+     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+    },
+    {
+     "number": 6814,
+     "title": "PcodeLifter: Give each project its own Sleigh context",
+     "url": "https://github.com/angr/angr/pull/6814",
+     "reason": "conflicts with the applied set: tests/engines/pcode/test_pcode.py"
+    },
+    {
+     "number": 6817,
+     "title": "Pcode: Disassemble lazily and match VEX's block cache size.",
+     "url": "https://github.com/angr/angr/pull/6817",
+     "reason": "conflicts with the applied set: angr/engines/pcode/lifter.py, tests/engines/pcode/test_pcode.py"
+    },
+    {
+     "number": 6818,
+     "title": "SimProcedures: Fix pthread_create.static_exits().",
+     "url": "https://github.com/angr/angr/pull/6818",
+     "reason": "conflicts with the applied set: angr/procedures/posix/pthread.py"
+    },
+    {
+     "number": 6823,
+     "title": "CFGFast: Stop static_exits from running an unrelated SimProcedure and aborting the scan",
+     "url": "https://github.com/angr/angr/pull/6823",
+     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+    },
+    {
+     "number": 6826,
+     "title": "CFGBase: Leave overlapping blocks alone when their decodings conflict.",
+     "url": "https://github.com/angr/angr/pull/6826",
+     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+    },
+    {
+     "number": 6827,
+     "title": "CFGFast: Recognize NOP padding instead of seeding a function at it",
+     "url": "https://github.com/angr/angr/pull/6827",
+     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+    },
+    {
+     "number": 6828,
+     "title": "CFGFast: Keep a function whose block ends in an undefined instruction",
+     "url": "https://github.com/angr/angr/pull/6828",
+     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+    },
+    {
+     "number": 6846,
+     "title": "Decompiler: Preserve path context in guarding conditions",
+     "url": "https://github.com/angr/angr/pull/6846",
+     "reason": "conflicts with the applied set: tests/analyses/decompiler/test_condition_processor.py"
+    },
+    {
+     "number": 6865,
+     "title": "CFGFast: Do not judge a function by the block past a non-returning call",
+     "url": "https://github.com/angr/angr/pull/6865",
+     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+    },
+    {
+     "number": 6867,
+     "title": "CFGFast: Delete the function that starts inside an instruction, not another one",
+     "url": "https://github.com/angr/angr/pull/6867",
+     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+    },
+    {
+     "number": 6889,
+     "title": "CFGFast: Do not decode an object CLE invented",
+     "url": "https://github.com/angr/angr/pull/6889",
+     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+    },
+    {
+     "number": 6901,
+     "title": "CFGFast: Do not delete a block another function still owns",
+     "url": "https://github.com/angr/angr/pull/6901",
+     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+    },
+    {
+     "number": 6902,
+     "title": "CFGFast: Fix a KeyError from _remove_redundant_overlapping_blocks on ARM.",
+     "url": "https://github.com/angr/angr/pull/6902",
+     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+    },
+    {
+     "number": 6903,
+     "title": "CFGFast: Correct a returning status that no return site supports",
+     "url": "https://github.com/angr/angr/pull/6903",
+     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+    },
+    {
+     "number": 6911,
+     "title": "Decompiler: Preserve recorded goto identities",
+     "url": "https://github.com/angr/angr/pull/6911",
+     "reason": "conflicts with the applied set: tests/analyses/decompiler/test_structured_codegen.py"
+    },
+    {
+     "number": 6929,
+     "title": "CFGFast: Skip a whole undecodable RISC-V instruction, not one byte",
+     "url": "https://github.com/angr/angr/pull/6929",
+     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+    },
+    {
+     "number": 6932,
+     "title": "Pcode: Lift an architecture whose word is not a power of two",
+     "url": "https://github.com/angr/angr/pull/6932",
+     "reason": "conflicts with the applied set: angr/engines/pcode/lifter.py"
+    },
+    {
+     "number": 6933,
+     "title": "SimState: Register a plugin before initializing it",
+     "url": "https://github.com/angr/angr/pull/6933",
+     "reason": "conflicts with the applied set: angr/sim_state.py"
+    },
+    {
+     "number": 6936,
+     "title": "Make function graphs observable and owned",
+     "url": "https://github.com/angr/angr/pull/6936",
+     "reason": "conflicts with the applied set: angr/knowledge_plugins/functions/soot_function.py"
+    },
+    {
+     "number": 6943,
+     "title": "CFGFast: Stop reporting a null terminator the string scan never saw",
+     "url": "https://github.com/angr/angr/pull/6943",
+     "reason": "conflicts with the applied set: tests/analyses/cfg/test_cfgfast.py"
+    },
+    {
+     "number": 6944,
+     "title": "Serialize the AIL switch-case head marker instead of losing the cache",
+     "url": "https://github.com/angr/angr/pull/6944",
+     "reason": "conflicts with the applied set: tests/serialization/test_decompilation_cache_serialization.py"
+    }
+   ],
+   "excluded": [
+    {
+     "number": 6658,
+     "title": "Add first-class WebAssembly runtime support",
+     "url": "https://github.com/angr/angr/pull/6658",
+     "reason": "conflicts with the upstream default branch",
+     "depends_on": []
+    },
+    {
+     "number": 6679,
+     "title": "AIL: preserve LL/SC result definitions and effects",
+     "url": "https://github.com/angr/angr/pull/6679",
+     "reason": "draft",
+     "depends_on": []
+    },
+    {
+     "number": 6742,
+     "title": "Decompiler: preserve equal replacement block keys",
+     "url": "https://github.com/angr/angr/pull/6742",
+     "reason": "checks not green: Test Results concluded FAILURE",
+     "depends_on": []
+    },
+    {
+     "number": 6743,
+     "title": "Decompiler: reject ambiguous duplication reinsertion candidates",
+     "url": "https://github.com/angr/angr/pull/6743",
+     "reason": "draft",
+     "depends_on": []
+    },
+    {
+     "number": 6752,
+     "title": "Decompiler: preserve VEX dirty effects through simplification",
+     "url": "https://github.com/angr/angr/pull/6752",
+     "reason": "draft",
+     "depends_on": []
+    },
+    {
+     "number": 6795,
+     "title": "SimCGC: Keep the CGC defaults when a dump omits its optional backers.",
+     "url": "https://github.com/angr/angr/pull/6795",
+     "reason": "checks not green: Test Results concluded FAILURE",
+     "depends_on": [
+      "angr/cle#718"
+     ]
+    },
+    {
+     "number": 6796,
+     "title": "AIL: Support addresses that do not fit in a signed 64-bit integer.",
+     "url": "https://github.com/angr/angr/pull/6796",
+     "reason": "checks not green: docs/readthedocs.org:angr is FAILURE",
+     "depends_on": []
+    },
+    {
+     "number": 6804,
+     "title": "Tolerate an architecture that has no program counter.",
+     "url": "https://github.com/angr/angr/pull/6804",
+     "reason": "checks not green: docs/readthedocs.org:angr is FAILURE",
+     "depends_on": [
+      "angr/archinfo#367"
+     ]
+    },
+    {
+     "number": 6805,
+     "title": "CFGFast: Fix the default exit of one-instruction blocks on delay-slot architectures",
+     "url": "https://github.com/angr/angr/pull/6805",
+     "reason": "checks not green: docs/readthedocs.org:angr is PENDING",
+     "depends_on": []
+    },
+    {
+     "number": 6824,
+     "title": "Spilling stores: Fix copy() and stop remapping LMDB under an open transaction.",
+     "url": "https://github.com/angr/angr/pull/6824",
+     "reason": "checks not green: docs/readthedocs.org:angr is PENDING",
+     "depends_on": []
+    },
+    {
+     "number": 6829,
+     "title": "Decompiler: Keep the provisional call return read by machine code",
+     "url": "https://github.com/angr/angr/pull/6829",
+     "reason": "conflicts with the upstream default branch",
+     "depends_on": []
+    },
+    {
+     "number": 6841,
+     "title": "Decompiler: Remove GCC x87 clearing artifacts",
+     "url": "https://github.com/angr/angr/pull/6841",
+     "reason": "draft",
+     "depends_on": []
+    },
+    {
+     "number": 6845,
+     "title": "Decompiler: preserve function entries during deduplication",
+     "url": "https://github.com/angr/angr/pull/6845",
+     "reason": "checks not green: Test Results concluded FAILURE",
+     "depends_on": []
+    },
+    {
+     "number": 6853,
+     "title": "Decompiler: Preserve virtual-variable bindings across index collisions",
+     "url": "https://github.com/angr/angr/pull/6853",
+     "reason": "conflicts with the upstream default branch",
+     "depends_on": []
+    },
+    {
+     "number": 6854,
+     "title": "Decompiler: Lower guarded loads to conditional expressions",
+     "url": "https://github.com/angr/angr/pull/6854",
+     "reason": "checks not green: Test Results concluded FAILURE",
+     "depends_on": []
+    },
+    {
+     "number": 6861,
+     "title": "CFGFast: Use a Mach-O function-start table for what it does not otherwise find",
+     "url": "https://github.com/angr/angr/pull/6861",
+     "reason": "checks not green: Test Results concluded FAILURE",
+     "depends_on": [
+      "angr/cle#754"
+     ]
+    },
+    {
+     "number": 6864,
+     "title": "CFG: Read a blob's executable map from its segments when it has one",
+     "url": "https://github.com/angr/angr/pull/6864",
+     "reason": "checks not green: Test Results concluded FAILURE",
+     "depends_on": [
+      "angr/cle#743",
+      "angr/cle#758"
+     ]
+    },
+    {
+     "number": 6904,
+     "title": "Decompiler: Distinguish retries from structuring updates",
+     "url": "https://github.com/angr/angr/pull/6904",
+     "reason": "checks not green: docs/readthedocs.org:angr is FAILURE",
+     "depends_on": []
+    },
+    {
+     "number": 6949,
+     "title": "SootClassHierarchy: Answer the subclass question for an interface",
+     "url": "https://github.com/angr/angr/pull/6949",
+     "reason": "checks not green: codecov/patch concluded FAILURE",
+     "depends_on": []
+    },
+    {
+     "number": 6954,
+     "title": "Preserve loop-header variables during expression folding",
+     "url": "https://github.com/angr/angr/pull/6954",
+     "reason": "checks not green: ci / Lint concluded FAILURE, ci / Typecheck concluded FAILURE",
+     "depends_on": []
+    }
+   ]
+  },
+  "archinfo": {
+   "upstream": "https://github.com/angr/archinfo",
+   "default_branch": "master",
+   "base": "bf85c7e47bb469878c564480e28c677abbe35acc",
+   "head": "dc69bc9c131ffa6fc18b3f2a48b8aed7a2c27305",
+   "applied": [
+    {
+     "number": 363,
+     "title": "Support narrow p-code stack pointers",
+     "url": "https://github.com/angr/archinfo/pull/363",
+     "head_sha": "9b980382795af858f420d1f90a4de88a96fb7595"
+    },
+    {
+     "number": 364,
+     "title": "Reject word sizes struct cannot express",
+     "url": "https://github.com/angr/archinfo/pull/364",
+     "head_sha": "6e59dcf222f159989c111f68a8c46486be54162f"
+    },
+    {
+     "number": 371,
+     "title": "Report the nop and ret encodings a big-endian machine holds in memory",
+     "url": "https://github.com/angr/archinfo/pull/371",
+     "head_sha": "b43aa15061531ff238ef376a4f2ea480640cdde0"
+    },
+    {
+     "number": 373,
+     "title": "Let ARM express big-endian data with little-endian instructions",
+     "url": "https://github.com/angr/archinfo/pull/373",
+     "head_sha": "18f64e0cfc270957ca7be5c92f3d930d31608e7f"
+    }
+   ],
+   "skipped": [],
+   "excluded": [
+    {
+     "number": 365,
+     "title": "Resolve sleigh language ids from arch_from_id",
+     "url": "https://github.com/angr/archinfo/pull/365",
+     "reason": "draft",
+     "depends_on": []
+    }
+   ]
+  },
+  "claripy": {
+   "upstream": "https://github.com/angr/claripy",
+   "default_branch": "master",
+   "base": "6ff4486278af191304ae8188ed6faa643cf43087",
+   "head": "c6f59854420b3099391d25ea43838b00f0e30967",
+   "applied": [
+    {
+     "number": 737,
+     "title": "Select the Pyodide Z3 build on Emscripten",
+     "url": "https://github.com/angr/claripy/pull/737",
+     "head_sha": "809d89075221cc5f232d92685f32432d117f0fa9"
+    }
+   ],
+   "skipped": [],
+   "excluded": [
+    {
+     "number": 742,
+     "title": "Answer singlevalued and multivalued when no backend can bound cardinality",
+     "url": "https://github.com/angr/claripy/pull/742",
+     "reason": "checks not green: angr Ecosystem Test / Lint concluded FAILURE, angr Ecosystem Test / Typecheck concluded FAILURE",
+     "depends_on": []
+    }
+   ]
+  },
+  "cle": {
+   "upstream": "https://github.com/angr/cle",
+   "default_branch": "master",
+   "base": "46a37333f4f59b0facf8774ee743ebc4cc074e9b",
+   "head": "1e6af571166a180617443a4e28628e1883132ba0",
+   "applied": [
+    {
+     "number": 714,
+     "title": "SRec: Fix record matching and entry point parsing",
+     "url": "https://github.com/angr/cle/pull/714",
+     "head_sha": "39b8a8da36e8d086c6a939af0d68ec7ad3d0a27b"
+    },
+    {
+     "number": 715,
+     "title": "Load partial-memory minidumps",
+     "url": "https://github.com/angr/cle/pull/715",
+     "head_sha": "3e86427b09441f7a1f5ae7d257773bb964ebfd7d"
+    },
+    {
+     "number": 717,
+     "title": "Cover object placement in an address space narrower than a granule",
+     "url": "https://github.com/angr/cle/pull/717",
+     "head_sha": "eba87433a746f623c998b51c85d2c7bc20eb6166"
+    },
+    {
+     "number": 720,
+     "title": "Probe UEFI compatibility without assuming a file object",
+     "url": "https://github.com/angr/cle/pull/720",
+     "head_sha": "90003a475fab3ef7e86605216d4a2ae49e083fcb"
+    },
+    {
+     "number": 721,
+     "title": "Pack and unpack words struct cannot describe",
+     "url": "https://github.com/angr/cle/pull/721",
+     "head_sha": "df42c72e14dc1ba567de054e130bc8e02c33528b"
+    },
+    {
+     "number": 722,
+     "title": "Relocate MIPS HI16 and LO16 from the RELA addend",
+     "url": "https://github.com/angr/cle/pull/722",
+     "head_sha": "44c58d0548edc69b4d0b2c2ec2a087979c57fbfa"
+    },
+    {
+     "number": 723,
+     "title": "ELF: Do not decode the dynamic table out of zero-fill",
+     "url": "https://github.com/angr/cle/pull/723",
+     "head_sha": "771e413aec71c7a6cc337468a8a3150ea3126479"
+    },
+    {
+     "number": 724,
+     "title": "Load ARM64 and ARMNT COFF objects",
+     "url": "https://github.com/angr/cle/pull/724",
+     "head_sha": "410339cd1178daa133e402f79ed7472f4abba5b3"
+    },
+    {
+     "number": 726,
+     "title": "CGC: Repair only the header bytes that are loaded",
+     "url": "https://github.com/angr/cle/pull/726",
+     "head_sha": "f59456edfa464ebf2e3c64a4821117f9c97ad5a4"
+    },
+    {
+     "number": 727,
+     "title": "Mach-O: Read the LC_UNIXTHREAD entry point per cputype",
+     "url": "https://github.com/angr/cle/pull/727",
+     "head_sha": "8b1c15a5b0d510b657b5b0e32ad516d6554dfcec"
+    },
+    {
+     "number": 730,
+     "title": "Stop container objects from claiming their children's addresses",
+     "url": "https://github.com/angr/cle/pull/730",
+     "head_sha": "ab3869a3fb9d24f1b415f70c582e661e1613296c"
+    },
+    {
+     "number": 731,
+     "title": "ELF: Tolerate a missing dynamic string table when reading soname and RELRO",
+     "url": "https://github.com/angr/cle/pull/731",
+     "head_sha": "faf970653dca1d0e95d84edc1aa6800fe14436ad"
+    },
+    {
+     "number": 732,
+     "title": "Stop indexing PE and ELF header tables past their declared length",
+     "url": "https://github.com/angr/cle/pull/732",
+     "head_sha": "bc32f36e39f061be59bd31bfd69f879dd5f1a6da"
+    },
+    {
+     "number": 733,
+     "title": "Encode R_ARM_THM_CALL over its full 25-bit displacement",
+     "url": "https://github.com/angr/cle/pull/733",
+     "head_sha": "76b81822a57b7724136c90544ec90629b4ef3927"
+    },
+    {
+     "number": 734,
+     "title": "ELFCore: Read register notes in the namespace that names them",
+     "url": "https://github.com/angr/cle/pull/734",
+     "head_sha": "d1d9017b37497746055dc09ace5968fb3cbe748b"
+    },
+    {
+     "number": 736,
+     "title": "Load static archives with a /SYM64/ symbol table",
+     "url": "https://github.com/angr/cle/pull/736",
+     "head_sha": "eec9a36347aa4af35b7f2d896d2683b285d58895"
+    },
+    {
+     "number": 739,
+     "title": "ELF: Stop unloaded sections from claiming a relocatable object's addresses",
+     "url": "https://github.com/angr/cle/pull/739",
+     "head_sha": "110e458ec39577915409f6b2c99d2c66f60d9810"
+    },
+    {
+     "number": 740,
+     "title": "ELF: Apply the header fields a p-code opinion constrains",
+     "url": "https://github.com/angr/cle/pull/740",
+     "head_sha": "52aa9c3217792d954ae0b125fefd7e17205788c8"
+    },
+    {
+     "number": 755,
+     "title": "PE: Build base relocations on every architecture the backend resolves",
+     "url": "https://github.com/angr/cle/pull/755",
+     "head_sha": "58d16f7126de0f347539cb9f752bf4b3884d2469"
+    },
+    {
+     "number": 756,
+     "title": "PE: Read the ARM64 and ARMNT exception directory",
+     "url": "https://github.com/angr/cle/pull/756",
+     "head_sha": "340bbeaf85d054ec8f4312a9db17d54ec0045862"
+    },
+    {
+     "number": 757,
+     "title": "PE: Resolve the machine type of a ReadyToRun image built for another system",
+     "url": "https://github.com/angr/cle/pull/757",
+     "head_sha": "eb5769491392a59a6117925069896f8b8de3945c"
+    },
+    {
+     "number": 766,
+     "title": "Give a PowerPC64 jump slot's extern a function descriptor",
+     "url": "https://github.com/angr/cle/pull/766",
+     "head_sha": "91dd5dfcb524d215bbdaa14817343e5ff92a8e0d"
+    },
+    {
+     "number": 768,
+     "title": "Survive a CIE that declares no FDE encoding",
+     "url": "https://github.com/angr/cle/pull/768",
+     "head_sha": "9443532af981379a10ecf8496fabf5d0c564c3b5"
+    },
+    {
+     "number": 770,
+     "title": "ELF: Read a line program in the DWARF format it declares",
+     "url": "https://github.com/angr/cle/pull/770",
+     "head_sha": "ba189936d1c27a522827c7349656a9bf9bba87b3"
+    },
+    {
+     "number": 773,
+     "title": "Relocate R_*_RELATIVE against the load bias, not the mapped base",
+     "url": "https://github.com/angr/cle/pull/773",
+     "head_sha": "9e0e71887f5b2ae8678a4d123c623973185c2d7f"
+    },
+    {
+     "number": 774,
+     "title": "UEFI: Load every FFS file type that carries a module image",
+     "url": "https://github.com/angr/cle/pull/774",
+     "head_sha": "90ef0ddae6a9f308790b8efe980ba70a49df1116"
+    },
+    {
+     "number": 780,
+     "title": "Load a Mach-O MH_EXECUTE that a container backend owns",
+     "url": "https://github.com/angr/cle/pull/780",
+     "head_sha": "5abacfce777d557d945ffb2c47df97f8bbf33197"
+    },
+    {
+     "number": 783,
+     "title": "Load a bare DEX",
+     "url": "https://github.com/angr/cle/pull/783",
+     "head_sha": "e5d9d25e58305a1adf9cb55e3af540e1a4d8026b"
+    },
+    {
+     "number": 787,
+     "title": "Load a Mach-O relocatable object",
+     "url": "https://github.com/angr/cle/pull/787",
+     "head_sha": "2c0d6690220bb7c3bb7dc1797a914e7e572082f3"
+    },
+    {
+     "number": 791,
+     "title": "ELF: Take the word size from the machine, not the container",
+     "url": "https://github.com/angr/cle/pull/791",
+     "head_sha": "fc9980672a4aeeee06f2aa80c90723fa2d4e9953"
+    }
+   ],
+   "skipped": [
+    {
+     "number": 725,
+     "title": "Load minidumps whose writer left out a stream",
+     "url": "https://github.com/angr/cle/pull/725",
+     "reason": "conflicts with the applied set: cle/backends/minidump/__init__.py, tests/test_minidump.py"
+    },
+    {
+     "number": 728,
+     "title": "Load Mach-O bundles and kernel extensions",
+     "url": "https://github.com/angr/cle/pull/728",
+     "reason": "conflicts with the applied set: cle/backends/macho/macho.py"
+    },
+    {
+     "number": 759,
+     "title": "Minidump: Describe a loaded module by the sections it actually has",
+     "url": "https://github.com/angr/cle/pull/759",
+     "reason": "conflicts with the applied set: cle/backends/minidump/__init__.py, tests/test_minidump.py"
+    },
+    {
+     "number": 760,
+     "title": "Regions: Stop the address lookups from assuming an order the list may not have",
+     "url": "https://github.com/angr/cle/pull/760",
+     "reason": "conflicts with the applied set: tests/test_regions.py"
+    },
+    {
+     "number": 761,
+     "title": "COFF: Expose undefined externals through self.imports",
+     "url": "https://github.com/angr/cle/pull/761",
+     "reason": "conflicts with the applied set: cle/backends/coff.py, tests/test_coff.py"
+    },
+    {
+     "number": 764,
+     "title": "COFF: Give a section with no file bytes an address of its own",
+     "url": "https://github.com/angr/cle/pull/764",
+     "reason": "conflicts with the applied set: cle/backends/coff.py, tests/test_coff.py"
+    },
+    {
+     "number": 765,
+     "title": "Keep a rebased object out of the null page",
+     "url": "https://github.com/angr/cle/pull/765",
+     "reason": "conflicts with the applied set: tests/test_rebase.py"
+    },
+    {
+     "number": 775,
+     "title": "COFF: Extend the object over the whole image it maps",
+     "url": "https://github.com/angr/cle/pull/775",
+     "reason": "conflicts with the applied set: tests/test_coff.py"
+    },
+    {
+     "number": 776,
+     "title": "Place the main binary at 0x400000 only when that space is free",
+     "url": "https://github.com/angr/cle/pull/776",
+     "reason": "conflicts with the applied set: tests/test_rebase.py"
+    },
+    {
+     "number": 777,
+     "title": "ELF: Load the .eh_frame function hints without load_debug_info",
+     "url": "https://github.com/angr/cle/pull/777",
+     "reason": "conflicts with the applied set: cle/backends/elf/elf.py"
+    },
+    {
+     "number": 785,
+     "title": "ELF: Size imported objects from DWARF declarations",
+     "url": "https://github.com/angr/cle/pull/785",
+     "reason": "conflicts with the applied set: tests/test_extern.py"
+    },
+    {
+     "number": 786,
+     "title": "Use SimData types for untyped externs",
+     "url": "https://github.com/angr/cle/pull/786",
+     "reason": "conflicts with the applied set: tests/test_extern.py"
+    },
+    {
+     "number": 788,
+     "title": "Make loader memory reads side-effect free",
+     "url": "https://github.com/angr/cle/pull/788",
+     "reason": "conflicts with the applied set: cle/memory.py, tests/test_clemory.py"
+    },
+    {
+     "number": 790,
+     "title": "PE: Back the last byte of the image the section table declares",
+     "url": "https://github.com/angr/cle/pull/790",
+     "reason": "conflicts with the applied set: tests/test_pe.py"
+    }
+   ],
+   "excluded": [
+    {
+     "number": 704,
+     "title": "Test CLE under Pyodide",
+     "url": "https://github.com/angr/cle/pull/704",
+     "reason": "depends on angr/angr#6658 which is excluded: conflicts with the upstream default branch",
+     "depends_on": [
+      "angr/angr#6658",
+      "angr/claripy#737",
+      "angr/pypcode#283",
+      "angr/pyvex#555"
+     ]
+    },
+    {
+     "number": 718,
+     "title": "Fix Clemory backer removal and the BackedCGC backend",
+     "url": "https://github.com/angr/cle/pull/718",
+     "reason": "depends on angr/angr#6795 which is excluded: checks not green: Test Results concluded FAILURE",
+     "depends_on": [
+      "angr/angr#6795"
+     ]
+    },
+    {
+     "number": 754,
+     "title": "Mach-O: Register the LC_FUNCTION_STARTS entries as function hints",
+     "url": "https://github.com/angr/cle/pull/754",
+     "reason": "depends on angr/angr#6861 which is excluded: checks not green: Test Results concluded FAILURE",
+     "depends_on": [
+      "angr/angr#6861"
+     ]
+    },
+    {
+     "number": 758,
+     "title": "ELFCore: Keep the permissions of the mappings it turns into blobs",
+     "url": "https://github.com/angr/cle/pull/758",
+     "reason": "depends on angr/angr#6864 which is excluded: checks not green: Test Results concluded FAILURE",
+     "depends_on": [
+      "angr/angr#6864"
+     ]
+    },
+    {
+     "number": 771,
+     "title": "ELF: Search /usr/lib/debug for a separate debug file",
+     "url": "https://github.com/angr/cle/pull/771",
+     "reason": "draft",
+     "depends_on": []
+    },
+    {
+     "number": 784,
+     "title": "ELF: Read EF_ARM_BE8",
+     "url": "https://github.com/angr/cle/pull/784",
+     "reason": "checks not green: Test windows-2022 concluded CANCELLED, Test macos-15 concluded FAILURE",
+     "depends_on": [
+      "angr/archinfo#373",
+      "angr/pyvex#565"
+     ]
+    },
+    {
+     "number": 789,
+     "title": "PE: Separate GNU EH-frame hints from unwind entries",
+     "url": "https://github.com/angr/cle/pull/789",
+     "reason": "checks not green: ci / Test (0) concluded FAILURE, ci / Test (3) concluded FAILURE, ci / Test (4) concluded FAILURE, Test windows-2022 concluded CANCELLED, Test macos-15 concluded FAILURE",
+     "depends_on": [
+      "angr/angr#6948"
+     ]
+    }
+   ]
+  },
+  "pypcode": {
+   "upstream": "https://github.com/angr/pypcode",
+   "default_branch": "master",
+   "base": "559aacdc9d363fd19477d9daa40721279cd99248",
+   "head": "d465a6dadc8015fac1b5e14f2f685685ea2eb621",
+   "applied": [
+    {
+     "number": 288,
+     "title": "Fix segfault when a delay-slot instruction has no p-code",
+     "url": "https://github.com/angr/pypcode/pull/288",
+     "head_sha": "2bbb34dc13c44db056ae0493b7a56f451058b030"
+    },
+    {
+     "number": 289,
+     "title": "Fix heap corruption on instructions that outgrow the parse tree",
+     "url": "https://github.com/angr/pypcode/pull/289",
+     "head_sha": "54d3ad52d932d7a7cb4e7287778d47a0cdd860a4"
+    }
+   ],
+   "skipped": [],
+   "excluded": [
+    {
+     "number": 283,
+     "title": "Add Pyodide WebAssembly wheel support",
+     "url": "https://github.com/angr/pypcode/pull/283",
+     "reason": "depends on angr/angr#6658 which is excluded: conflicts with the upstream default branch",
+     "depends_on": [
+      "angr/angr#6658",
+      "angr/claripy#737",
+      "angr/cle#702",
+      "angr/pyvex#555"
+     ]
+    }
+   ]
+  },
+  "pyvex": {
+   "upstream": "https://github.com/angr/pyvex",
+   "default_branch": "master",
+   "base": "bdd5441035e02920eaa72c1c3cf9a4f0d572104d",
+   "head": "bc97c17aadb81f8c512b8e5a4c12668a3438aca4",
+   "applied": [
+    {
+     "number": 564,
+     "title": "Lifting: Tell libVEX how much of the lift buffer it may read.",
+     "url": "https://github.com/angr/pyvex/pull/564",
+     "head_sha": "0beff92e436b913bdd82e7c77129cd263e21d433"
+    },
+    {
+     "number": 569,
+     "title": "Do not fail the import when the FFI parser cache cannot be written",
+     "url": "https://github.com/angr/pyvex/pull/569",
+     "head_sha": "f89006a28e5e619a349b04669e9dd8cc0dbd14eb"
+    },
+    {
+     "number": 573,
+     "title": "Do not lose a decode error to its own handler",
+     "url": "https://github.com/angr/pyvex/pull/573",
+     "head_sha": "aa12a0370e0a2909cd75f614da5fb4d834956004"
+    }
+   ],
+   "skipped": [
+    {
+     "number": 566,
+     "title": "Lifting: Decode RISC-V store-conditional and float comparisons again",
+     "url": "https://github.com/angr/pyvex/pull/566",
+     "reason": "conflicts with the applied set: vex"
+    },
+    {
+     "number": 567,
+     "title": "Keep the decoded prefix when MIPS32 meets a MIPS64-only instruction",
+     "url": "https://github.com/angr/pyvex/pull/567",
+     "reason": "conflicts with the applied set: vex"
+    },
+    {
+     "number": 568,
+     "title": "Lifting: Handle mixed-width Thumb IT lookback",
+     "url": "https://github.com/angr/pyvex/pull/568",
+     "reason": "conflicts with the applied set: vex"
+    },
+    {
+     "number": 570,
+     "title": "Lifting: Resolve s390x BRCTH branch targets past a 16-bit displacement",
+     "url": "https://github.com/angr/pyvex/pull/570",
+     "reason": "conflicts with the applied set: vex"
+    },
+    {
+     "number": 571,
+     "title": "Lifting: Keep a stale s390x execute target from suppressing later EXRL expansion",
+     "url": "https://github.com/angr/pyvex/pull/571",
+     "reason": "conflicts with the applied set: vex"
+    }
+   ],
+   "excluded": []
+  }
+ }
+}

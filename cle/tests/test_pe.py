@@ -1,0 +1,389 @@
+#!/usr/bin/env python
+from __future__ import annotations
+
+import io
+import os
+import shutil
+import struct
+import tempfile
+import unittest
+
+import pefile
+
+import cle
+from cle.backends.pe.symbolserver import PDBInfo
+
+TEST_BASE = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.path.join("..", "..", "binaries"))
+
+
+def _num_rva_and_sizes_offset(data):
+    """Return the offset of NumberOfRvaAndSizes, the last field of the PE optional header."""
+    optional_header = struct.unpack_from("<I", data, 0x3C)[0] + 4 + 20
+    magic = struct.unpack_from("<H", data, optional_header)[0]
+    return optional_header + (108 if magic == 0x20B else 92)
+
+
+def _data_directory_count(data):
+    """Return the number of data directories the image *data* declares."""
+    return struct.unpack_from("<I", data, _num_rva_and_sizes_offset(data))[0]
+
+
+def _shrink_data_directory(image, count):
+    """
+    Return *image* declaring only *count* data directories instead of the usual 16.
+
+    The section table moves up to stay adjacent to the shortened optional header; nothing after the headers
+    changes, so the two images map identically.
+    """
+    data = bytearray(image)
+
+    file_header = struct.unpack_from("<I", data, 0x3C)[0] + 4
+    num_sections = struct.unpack_from("<H", data, file_header + 2)[0]
+    size_of_optional_header = struct.unpack_from("<H", data, file_header + 16)[0]
+    optional_header = file_header + 20
+    count_offset = _num_rva_and_sizes_offset(data)
+    directories = count_offset + 4
+
+    section_table = optional_header + size_of_optional_header
+    section_table_end = section_table + num_sections * 40
+    sections = bytes(data[section_table:section_table_end])
+
+    struct.pack_into("<I", data, count_offset, count)
+    struct.pack_into("<H", data, file_header + 16, directories + count * 8 - optional_header)
+    new_section_table = directories + count * 8
+    data[new_section_table:section_table_end] = b"\x00" * (section_table_end - new_section_table)
+    data[new_section_table : new_section_table + len(sections)] = sections
+
+    return bytes(data)
+
+
+# pylint: disable=no-self-use
+class TestPEBackend(unittest.TestCase):
+    """
+    Test PE Backend
+    """
+
+    def test_exe(self):
+        exe = os.path.join(TEST_BASE, "tests", "x86", "windows", "TLS.exe")
+        ld = cle.Loader(exe, auto_load_libs=False)
+        assert isinstance(ld.main_object, cle.PE)
+        assert ld.main_object.os == "windows"
+        assert sorted([sec.name for sec in ld.main_object.sections]) == sorted(
+            [
+                ".textbss",
+                ".text",
+                ".rdata",
+                ".data",
+                ".idata",
+                ".tls",
+                ".gfids",
+                ".00cfg",
+                ".rsrc",
+            ]
+        )
+        assert ld.main_object.segments is ld.main_object.sections
+        assert sorted(ld.main_object.deps) == sorted(["kernel32.dll", "vcruntime140d.dll", "ucrtbased.dll"])
+        assert sorted(ld.main_object.imports) == sorted(
+            [
+                "_configure_narrow_argv",
+                "GetLastError",
+                "HeapFree",
+                "IsProcessorFeaturePresent",
+                "__vcrt_GetModuleFileNameW",
+                "_configthreadlocale",
+                "__setusermatherr",
+                "memset",
+                "terminate",
+                "_register_onexit_function",
+                "WaitForSingleObject",
+                "_set_fmode",
+                "FreeLibrary",
+                "QueryPerformanceCounter",
+                "_controlfp_s",
+                "IsDebuggerPresent",
+                "HeapAlloc",
+                "_initialize_onexit_table",
+                "wcscpy_s",
+                "__std_type_info_destroy_list",
+                "_set_app_type",
+                "_cexit",
+                "_seh_filter_exe",
+                "_c_exit",
+                "GetCurrentProcess",
+                "_set_new_mode",
+                "__vcrt_LoadLibraryExW",
+                "__stdio_common_vsprintf_s",
+                "GetCurrentProcessId",
+                "_execute_onexit_table",
+                "WideCharToMultiByte",
+                "UnhandledExceptionFilter",
+                "MultiByteToWideChar",
+                "GetStartupInfoW",
+                "exit",
+                "GetProcAddress",
+                "InitializeSListHead",
+                "_crt_at_quick_exit",
+                "GetProcessHeap",
+                "_CrtDbgReportW",
+                "RaiseException",
+                "__telemetry_main_invoke_trigger",
+                "CreateThread",
+                "_exit",
+                "__p__commode",
+                "_get_initial_narrow_environment",
+                "__p___argc",
+                "SetUnhandledExceptionFilter",
+                "_except_handler4_common",
+                "_register_thread_local_exe_atexit_callback",
+                "GetSystemTimeAsFileTime",
+                "_initialize_narrow_environment",
+                "__vcrt_GetModuleHandleW",
+                "__p___argv",
+                "GetModuleHandleW",
+                "TerminateProcess",
+                "_initterm_e",
+                "_wmakepath_s",
+                "_seh_filter_dll",
+                "_CrtDbgReport",
+                "VirtualQuery",
+                "__telemetry_main_return_trigger",
+                "_wsplitpath_s",
+                "_initterm",
+                "GetCurrentThreadId",
+                "_crt_atexit",
+            ]
+        )
+        assert ld.main_object.provides is None
+
+    def test_tls(self):
+        exe = os.path.join(TEST_BASE, "tests", "x86", "windows", "TLS.exe")
+        ld = cle.Loader(exe, auto_load_libs=False)
+        tls = ld.tls.new_thread()
+
+        assert ld.main_object.tls_used
+        assert ld.main_object.tls_data_start == 0x1B000
+        assert ld.main_object.tls_data_size == 520
+        assert ld.main_object.tls_index_address == 0x41913C
+        assert ld.main_object.tls_callbacks == [0x411302]
+        assert ld.main_object.tls_block_size == ld.main_object.tls_data_size
+
+        assert tls is not None
+        assert len(ld.tls.modules) == 1
+        assert tls.get_tls_data_addr(0) == tls.memory.unpack_word(0)
+
+    def test_tls_x64(self):
+        exe = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "TLS.exe")
+        ld = cle.Loader(exe, auto_load_libs=False)
+        tls = ld.tls.new_thread()
+
+        assert ld.main_object.tls_used
+        assert ld.main_object.tls_callbacks == [0x140001000]
+
+        assert tls is not None
+        assert len(ld.tls.modules) == 1
+
+    def test_empty_tls_data(self):
+        exe = os.path.join(
+            TEST_BASE, "tests", "i386", "windows", "0245fc3455f66354cef5b73de12318f881e89a7f2af19b5592349ce1d7de2017"
+        )
+        ld = cle.Loader(exe, auto_load_libs=False)
+        tls = ld.tls.new_thread()
+
+        assert ld.main_object.tls_used
+        assert ld.main_object.tls_data_size == 0
+        assert ld.main_object.tls_block_size == 0
+
+        assert tls is not None
+        assert len(ld.tls.modules) == 1
+
+    def test_pdb(self):
+        exe = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.exe")
+        pdb = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.pdb")
+
+        ld = cle.Loader(exe, auto_load_libs=False)
+        assert not ld.find_symbol("authenticate")
+
+        # Automatically find fauxware.pdb
+        ld = cle.Loader(exe, auto_load_libs=False, load_debug_info=True)
+        assert ld.find_symbol("authenticate")
+
+        # Manually specify fauxware.pdb
+        ld = cle.Loader(exe, auto_load_libs=False, main_opts={"debug_symbols": pdb})
+        assert ld.find_symbol("authenticate")
+
+    def test_long_section_names(self):
+        exe = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "simple_crackme_x64.exe")
+        ld = cle.Loader(exe, auto_load_libs=False)
+        section_names = [section.name for section in ld.main_object.sections]
+
+        # Assert no string table references remain
+        assert not any(name.startswith("/") for name in section_names)
+
+        debug_section_names = [
+            ".debug_aranges",
+            ".debug_info",
+            ".debug_abbrev",
+            ".debug_line",
+            ".debug_frame",
+            ".debug_str",
+            ".debug_loc",
+            ".debug_ranges",
+        ]
+        assert section_names[-len(debug_section_names) :] == debug_section_names
+
+    def test_tls_directory_address_of_callbacks_null(self):
+        # https://github.com/angr/cle/issues/657
+        exe = os.path.join(
+            TEST_BASE, "tests", "x86_64", "windows", "7107ab06446ce4a51226196453066e7d361972364ad1543fe8a3a03a957e1bd5"
+        )
+        ld = cle.Loader(exe, auto_load_libs=False)
+
+        assert ld.main_object.tls_callbacks == []
+
+    def test_coff_symbol_loaded(self):
+        exe = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "simple_crackme_x64.exe")
+        ld = cle.Loader(exe, auto_load_libs=False)
+        assert ld.find_symbol("main")
+
+    def test_debug_symbol_paths_flat_layout(self):
+        """Test loading PDB from debug_symbol_paths with flat layout."""
+        exe = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.exe")
+        pdb = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.pdb")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Copy PDB to a separate directory (flat layout)
+            pdb_dest = os.path.join(tmpdir, "fauxware.pdb")
+            shutil.copy(pdb, pdb_dest)
+
+            # Load with debug_symbol_paths pointing to the temp directory
+            ld = cle.Loader(exe, auto_load_libs=False, load_debug_info=True, main_opts={"debug_symbol_paths": [tmpdir]})
+            assert ld.find_symbol("authenticate")
+
+    def test_debug_symbol_paths_symbol_store_layout(self):
+        """Test loading PDB from debug_symbol_paths with symbol store layout."""
+        exe = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.exe")
+        pdb = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.pdb")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # First, load the PE to get the PDB info
+            pe = pefile.PE(exe, fast_load=True)
+            pe.parse_data_directories()
+            pdb_info = PDBInfo.from_pe(pe)
+            pe.close()
+
+            # Create symbol store layout: tmpdir/pdbname/signature/pdbname
+            if pdb_info:
+                store_dir = os.path.join(tmpdir, pdb_info.pdb_name, pdb_info.signature_id)
+                os.makedirs(store_dir)
+                pdb_dest = os.path.join(store_dir, pdb_info.pdb_name)
+                shutil.copy(pdb, pdb_dest)
+
+                # Load with debug_symbol_paths pointing to the temp directory
+                ld = cle.Loader(
+                    exe, auto_load_libs=False, load_debug_info=True, main_opts={"debug_symbol_paths": [tmpdir]}
+                )
+                assert ld.find_symbol("authenticate")
+
+    def test_debug_symbol_paths_multiple_paths(self):
+        """Test loading PDB with multiple debug_symbol_paths."""
+        exe = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.exe")
+        pdb = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.pdb")
+
+        with tempfile.TemporaryDirectory() as tmpdir1:
+            with tempfile.TemporaryDirectory() as tmpdir2:
+                # Put PDB in second directory
+                pdb_dest = os.path.join(tmpdir2, "fauxware.pdb")
+                shutil.copy(pdb, pdb_dest)
+
+                # Load with both paths, PDB should be found in second path
+                ld = cle.Loader(
+                    exe,
+                    auto_load_libs=False,
+                    load_debug_info=True,
+                    main_opts={"debug_symbol_paths": [tmpdir1, tmpdir2]},
+                )
+                assert ld.find_symbol("authenticate")
+
+    def test_debug_symbol_paths_nonexistent_path(self):
+        """Test that nonexistent debug_symbol_paths are handled gracefully."""
+        exe = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.exe")
+        pdb = os.path.join(TEST_BASE, "tests", "x86_64", "windows", "fauxware.pdb")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Copy PDB to valid directory
+            pdb_dest = os.path.join(tmpdir, "fauxware.pdb")
+            shutil.copy(pdb, pdb_dest)
+
+            # Include a nonexistent path before the valid one
+            nonexistent = "/nonexistent/path/that/does/not/exist"
+            ld = cle.Loader(
+                exe,
+                auto_load_libs=False,
+                load_debug_info=True,
+                main_opts={"debug_symbol_paths": [nonexistent, tmpdir]},
+            )
+            assert ld.find_symbol("authenticate")
+
+    def test_load_binary_larger_than_highest_address(self):
+        # https://github.com/angr/angr/issues/6209
+        exe = os.path.join(
+            TEST_BASE, "tests", "i386", "windows", "aa893de523f58ee14972b94fef7ecdbb930cbdc700d8be097eb8a6de2549ce73"
+        )
+        ld = cle.Loader(exe, auto_load_libs=False)
+
+        assert len(ld.all_objects) == 2
+        assert ld.main_object.min_addr == 0x400000
+        assert ld.main_object.max_addr == 0x44F02D
+        assert ld.all_objects[1].min_addr == 0x500000
+
+    def test_short_data_directory(self):
+        # NumberOfRvaAndSizes may be smaller than the 16 directories the format defines - EFI stub images
+        # commonly declare 6 - and the trailing directories are then simply absent. printenv.exe uses only
+        # directories 1 and 2, so shrinking it to 6 drops nothing.
+        with open(os.path.join(TEST_BASE, "tests", "i386", "windows", "printenv.exe"), "rb") as f:
+            image = f.read()
+        assert _data_directory_count(image) == 16
+
+        short = _shrink_data_directory(image, 6)
+        assert _data_directory_count(short) == 6
+
+        ld = cle.Loader(io.BytesIO(short), auto_load_libs=False)
+
+        assert isinstance(ld.main_object, cle.PE)
+        assert [sec.name for sec in ld.main_object.sections] == [".text", ".data", ".bss", ".idata", ".rsrc"]
+        assert sorted(ld.main_object.deps) == ["kernel32.dll", "libintl3.dll", "msvcp60.dll", "msvcrt.dll"]
+        # The .NET descriptor is directory 14, past the end of this image's directories.
+        assert not ld.main_object.is_dotnet
+
+    def test_loading_incomplete_pe_file(self):
+        exe = os.path.join(
+            TEST_BASE, "tests", "i386", "windows", "a94bbeed0ef51db3d3964bb0cc2cbed0adab0e47997d88f34daa92faa1a91e8a"
+        )
+        ld = cle.Loader(exe, auto_load_libs=False)
+
+        assert ld.main_object is not None
+        txt_sec = ld.main_object.sections[0]
+        assert txt_sec.name == ".text"
+        assert txt_sec.memsize == 0x29EA
+        data = ld.memory.load(txt_sec.vaddr, txt_sec.memsize)
+        assert len(data) == 5025
+        assert data[:4] == b"\x8bD$\x04"
+        assert data[-4:] == b"3\xdb;\xc3"
+
+    def test_readytorun_machine_os_override(self):
+        dll = os.path.join(TEST_BASE, "tests", "x86_64", "readytorun_linux_x64.dll")
+        with open(dll, "rb") as f:
+            header = f.read(0x200)
+        machine = struct.unpack_from("<H", header, struct.unpack_from("<I", header, 0x3C)[0] + 4)[0]
+        # published for linux-x64, so the machine type is AMD64 exclusive-ored with the .NET
+        # override constant for Linux
+        assert machine == 0x8664 ^ 0x7B79
+
+        ld = cle.Loader(dll, auto_load_libs=False)
+        assert isinstance(ld.main_object, cle.PE)
+        assert ld.main_object.arch.name == "AMD64"
+        assert ld.main_object.is_dotnet
+
+
+if __name__ == "__main__":
+    unittest.main()

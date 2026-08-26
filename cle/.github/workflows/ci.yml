@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    uses: angr/ci-settings/.github/workflows/angr-ci.yml@master
+
+  test:
+    name: Test ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-2022, macos-15]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: cle
+      - id: binaries-ref
+        uses: angr/ci-settings/actions/binaries-ref@master
+      - uses: actions/checkout@v6
+        with:
+          repository: angr/binaries
+          path: binaries
+          ref: ${{ steps.binaries-ref.outputs.ref }}
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+      - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1
+        if: runner.os == 'Windows'
+      - name: Sync dependencies with uv
+        run: uv sync --directory cle --python python3.12 --group testing
+      - name: Run tests
+        run: uv --directory cle run pytest -n auto
