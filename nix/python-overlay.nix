@@ -2,9 +2,10 @@
 #
 # Every derivation reads its dependency list and build backend from the
 # component's own pyproject.toml, so the flake follows upstream as the trees
-# move. The only hand-maintained pieces are: the version-file locations, the
-# packages nixpkgs does not carry (`skipped`), and the native build wiring
-# (Rust for angr, CMake for pyvex and pypcode).
+# move. The hand-maintained pieces are: the version-file locations, the
+# packages nixpkgs does not carry (`skipped`), the exact-version table
+# (`pinned`) for the few third-party packages whose version matters, and the
+# native build wiring (Rust for angr, CMake for pyvex and pypcode).
 {
   lib,
   src, # the monorepo root
@@ -14,11 +15,16 @@ python-final: python-prev:
 let
   inherit (python-final) buildPythonPackage;
   pkgs = python-final.pkgs;
+  system = pkgs.stdenv.hostPlatform.system;
 
   # PEP 503 normalisation; nixpkgs attribute names follow it.
   normalize = n: lib.toLower (builtins.replaceStrings [ "_" "." ] [ "-" "-" ] n);
   specName = spec: normalize (builtins.head (builtins.match "^[[:space:]]*([A-Za-z0-9][A-Za-z0-9._-]*).*$" spec));
-  windowsOnly = spec: builtins.match ".*platform_system[[:space:]]*==[[:space:]]*['\"]Windows['\"].*" spec != null;
+  # Requirements whose environment marker excludes the platforms we build for.
+  notForUs =
+    spec:
+    builtins.match ".*platform_system[[:space:]]*==[[:space:]]*['\"]Windows['\"].*" spec != null
+    || builtins.match ".*sys_platform[[:space:]]*==[[:space:]]*['\"](win32|emscripten)['\"].*" spec != null;
 
   # Runtime requirements nixpkgs does not package. Upstream guards both imports
   # with try/except (cle/backends/pe/pe.py, cle/backends/uefi_firmware.py), so
@@ -27,14 +33,119 @@ let
     "pyxdia"
     "uefi-firmware"
   ];
-  # z3 ships no dist-info, so the runtime-deps check cannot see it; the module
-  # is still propagated through `dependencies`.
-  removedFromMetadata = skipped ++ [ "z3-solver" ];
 
+  # ---------------------------------------------------------------------------
+  # Exact-version table.
+  #
+  # Most third-party pins are relaxed (pythonRelaxDeps) and the nixpkgs version
+  # is used. The packages below are the exception: their version changes
+  # behaviour in ways the test suites catch (z3 4.16's Python binding types
+  # Z3_fpa_get_numeral_sign's out-parameter as c_bool and blows up FP solves;
+  # pyelftools 0.32 rejects SHT_NULL sh_link before cle's soname guard runs), so
+  # the overlay provides the version upstream develops against and checks every
+  # component requirement against it at evaluation time. When upstream bumps a
+  # `==` pin or raises a floor above the provided version, evaluation fails
+  # with a message naming the package; extend the table rather than relaxing.
+  #
+  # These packages are resolved only by the component derivations and exposed
+  # as `vibrPinned.<name>`; they deliberately do NOT replace the canonical
+  # attributes of the shared package set. Overriding `pyelftools` globally
+  # would rebuild auto-patchelf (a python3 env with pyelftools) and with it
+  # rustc's bootstrap, i.e. hours of rebuilding for every user.
+  pinned = {
+    "z3-solver" = {
+      version = "4.13.0.0";
+      package =
+        let
+          version = "4.13.0.0";
+          # PyPI wheels: fastest reliable route (a source build of z3 takes
+          # tens of minutes and nixpkgs' z3 recipe carries patches for 4.16).
+          wheels = {
+            x86_64-linux = {
+              platform = "manylinux2014_x86_64";
+              hash = "sha256-jELegrbj/37mEofQPHr4qZ+fZVTN0SBMa5vKlv8ct/s=";
+            };
+            aarch64-linux = {
+              platform = "manylinux2014_aarch64";
+              hash = "sha256-nWIgIqNRHAWZFcVrLCMchLXBvhuC9FfXVg3aPZFkdP4=";
+            };
+            aarch64-darwin = {
+              platform = "macosx_11_0_arm64";
+              hash = "sha256-vKfVmmmaRAJHU3whgMUZ1oLJ3zUgoWziiPztYacNJT0=";
+            };
+            x86_64-darwin = {
+              platform = "macosx_11_0_x86_64";
+              hash = "sha256-Skcx/e2Rsy4YYeHHyW5QDadDu5QxJGysUffD/8DyG10=";
+            };
+          };
+          wheel = wheels.${system} or (throw "z3-solver ${version}: no wheel hash recorded for ${system} in nix/python-overlay.nix");
+        in
+        buildPythonPackage {
+          pname = "z3-solver";
+          inherit version;
+          format = "wheel";
+          src = python-final.fetchPypi {
+            pname = "z3_solver";
+            inherit version;
+            format = "wheel";
+            python = "py2.py3";
+            abi = "none";
+            inherit (wheel) platform hash;
+          };
+          # libz3.so in the wheel links libstdc++ from the manylinux toolchain.
+          nativeBuildInputs = lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.autoPatchelfHook ];
+          buildInputs = lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.stdenv.cc.cc.lib ];
+          doCheck = false;
+          pythonImportsCheck = [ "z3" ];
+          meta = {
+            description = "Z3 theorem prover Python bindings (pinned by claripy)";
+            homepage = "https://github.com/Z3Prover/z3";
+            license = lib.licenses.mit;
+          };
+        };
+    };
+    "pyelftools" = {
+      version = "0.33";
+      package = python-prev.pyelftools.overridePythonAttrs (old: rec {
+        version = "0.33";
+        src = python-final.fetchPypi {
+          pname = "pyelftools";
+          inherit version;
+          hash = "sha256-Zg2C3L646D0XAr2X8iP3YWJdoGERwMyYjqxrirDBth8=";
+        };
+        # The sdist ships no test tree.
+        doCheck = false;
+      });
+    };
+  };
+
+  # Enforce the table against a requirement string from `component`.
+  matchVersion = op: spec: builtins.match (".*" + op + "[[:space:]]*([0-9][0-9A-Za-z.!+-]*).*") spec;
+  checkPinned =
+    component: spec:
+    let
+      name = specName spec;
+      entry = pinned.${name};
+      exact = matchVersion "==" spec;
+      floor = matchVersion ">=" spec;
+      provided = entry.version;
+    in
+    if !(pinned ? ${name}) then
+      spec
+    else if exact != null && builtins.head exact != provided then
+      throw "${component} requires ${name}==${builtins.head exact} but nix/python-overlay.nix provides ${provided}; update the `pinned` table"
+    else if floor != null && !(lib.versionAtLeast provided (builtins.head floor)) then
+      throw "${component} requires ${name}>=${builtins.head floor} but nix/python-overlay.nix provides ${provided}; update the `pinned` table"
+    else
+      spec;
+
+  resolve = n: if pinned ? ${n} then pinned.${n}.package else python-final.${n};
   depsOf =
-    specs:
-    map (n: python-final.${n}) (
-      lib.filter (n: !(lib.elem n skipped)) (map specName (lib.filter (s: !(windowsOnly s)) specs))
+    component: specs:
+    map resolve (
+      lib.filter (n: !(lib.elem n skipped)) (
+        map specName (map (checkPinned component) (lib.filter (s: !(notForUs s)) specs))
+      )
     );
 
   readPyproject = dir: builtins.fromTOML (builtins.readFile (dir + "/pyproject.toml"));
@@ -80,14 +191,15 @@ let
         pyproject = true;
         src = dir;
 
-        build-system = depsOf pyproject.build-system.requires;
-        dependencies = depsOf (pyproject.project.dependencies or [ ]) ++ extraDependencies;
+        build-system = depsOf pname pyproject.build-system.requires;
+        dependencies = depsOf pname (pyproject.project.dependencies or [ ]) ++ extraDependencies;
 
         # Sibling pins (cle==9.3.4.dev0 ...) and third-party exact pins
-        # (lmdb==2.1.1, z3-solver==4.13.0.0 ...) are relaxed in the wheel
-        # metadata; the monorepo snapshots are what we ship.
+        # (lmdb==2.1.1 ...) are relaxed in the wheel metadata; the monorepo
+        # snapshots are what we ship. Packages in `pinned` are provided at the
+        # required version instead, checked above.
         pythonRelaxDeps = true;
-        pythonRemoveDeps = removedFromMetadata;
+        pythonRemoveDeps = skipped;
 
         nativeBuildInputs = nativeBuildInputs;
         postPatch = ''
@@ -106,6 +218,8 @@ let
     );
 in
 {
+  vibrPinned = lib.mapAttrs (_: entry: entry.package) pinned;
+
   angr-data = buildPythonPackage {
     pname = "angr-data";
     version = versionFrom (angrDataSrc + "/angr_data/__init__.py");
@@ -164,7 +278,6 @@ in
   claripy = mkComponent {
     pname = "claripy";
     versionFile = "claripy/__init__.py";
-    extraDependencies = python-final.z3-solver.requiredPythonModules or [ ];
     pythonImportsCheck = [ "claripy" ];
   };
 
@@ -196,6 +309,7 @@ in
 
     optional-dependencies = {
       angrdb = [ python-final.sqlalchemy ];
+      keystone = [ python-final.keystone-engine ];
       unicorn = [ python-final.unicorn ];
     };
 

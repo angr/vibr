@@ -255,6 +255,25 @@ class TestPcodeEngine(TestCase):
             func_out = func.graph.out_degree(func_node)
             assert func_out > 0
 
+    def test_arch_without_program_counter(self):
+        """
+        Test states and CFG recovery on an architecture whose sleigh language declares no program
+        counter register, so there is no register for the instruction pointer to live in.
+        """
+        arch = archinfo.ArchPcode("Dalvik:LE:32:DEX_Nougat")
+
+        # const/4 v0, #0 ; return-void
+        byte_code = bytes.fromhex("12000e00")
+        p = angr.load_shellcode(
+            byte_code, arch=arch, start_offset=0x1000, load_address=0x1000, engine=angr.engines.UberEnginePcode
+        )
+
+        for state in (p.factory.blank_state(), p.factory.blank_state(addr=0x1002), p.factory.entry_state()):
+            assert repr(state) == "<SimState @ ?>"
+            assert state.history.successor_ip is None
+
+        cfg = p.analyses.CFGFast()
+        assert [(n.addr, n.size) for n in cfg.model.nodes()] == [(0x1000, 4)]
     def test_sleigh_context_is_not_shared_between_projects(self):
         """
         Test that a project's blocks do not depend on which other projects were lifted before it.

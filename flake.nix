@@ -48,6 +48,26 @@
       # Python 3.12 matches the angr development shell; upstream supports 3.12-3.14.
       pythonFor = pkgs: pkgs.python312;
 
+      # The `#angr` environment plus what the component test suites need.
+      # Kept out of `#angr` so the default closure stays lean. fastmcp (angr's
+      # `llm` extra) is not included: nixpkgs carries it, but for Python 3.12
+      # its chain is not in the binary cache (101 derivations) and breaks at
+      # inline-snapshot 0.34.2's own test suite (3 failures); pydantic-ai is
+      # absent from nixpkgs altogether.
+      testEnvFor =
+        pkgs:
+        (pythonFor pkgs).withPackages (p: [
+          p.angr
+          p.unicorn
+          p.pytest
+          p.pytest-xdist
+          p.pytest-timeout
+          p.pytest-forked
+          p.keystone-engine
+          p.sqlalchemy
+          p.pydantic
+        ]);
+
       # angr/binaries fixture for the CFG check, pinned by commit and hash.
       fauxware =
         pkgs:
@@ -73,6 +93,7 @@
         {
           default = env;
           angr = env;
+          test-env = testEnvFor pkgs;
           angr-lib = ps.angr;
           cle-lib = ps.cle;
           claripy-lib = ps.claripy;
@@ -94,6 +115,23 @@
         }
       );
 
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = pkgsFor system;
+        in
+        {
+          # nix develop .#test --command python3 -m pytest ...
+          test = pkgs.mkShell {
+            packages = [
+              (testEnvFor pkgs)
+              pkgs.binutils
+            ]
+            ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.gcc ];
+          };
+        }
+      );
+
       checks = forAllSystems (
         system:
         let
@@ -108,7 +146,7 @@
             '';
         in
         {
-          import-smoke = runPython "angr-import-smoke" ./nix/checks/import_smoke.py "";
+          import-smoke = runPython "angr-import-smoke" ./nix/checks/import_smoke.py (pythonFor pkgs).pkgs.vibrPinned.z3-solver.version;
           fauxware-cfg = runPython "angr-fauxware-cfg" ./nix/checks/fauxware_cfg.py "${fauxware pkgs}";
         }
       );

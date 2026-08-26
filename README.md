@@ -40,14 +40,14 @@ Test fixtures (`angr/binaries`) are never included.
 ## Contents
 
 <!-- vibr:begin -->
-Generated 2026-08-26T09:17:32+00:00 from a selection made 2026-08-26T09:02:28+00:00.
+Generated 2026-08-26T11:24:39+00:00 from a selection made 2026-08-26T11:24:39+00:00.
 
 | Component | Base | Applied | Skipped | Excluded |
 | --- | --- | ---: | ---: | ---: |
-| [angr](https://github.com/angr/angr) | [829ea98f57](https://github.com/angr/angr/commit/829ea98f577ac04d9cd3927ddc868713a5b0a1ab) | 61 (17 resolved) | 7 | 20 |
+| [angr](https://github.com/angr/angr) | [829ea98f57](https://github.com/angr/angr/commit/829ea98f577ac04d9cd3927ddc868713a5b0a1ab) | 64 (18 resolved) | 8 | 19 |
 | [archinfo](https://github.com/angr/archinfo) | [bf85c7e47b](https://github.com/angr/archinfo/commit/bf85c7e47bb469878c564480e28c677abbe35acc) | 4 | 0 | 1 |
 | [claripy](https://github.com/angr/claripy) | [6ff4486278](https://github.com/angr/claripy/commit/6ff4486278af191304ae8188ed6faa643cf43087) | 1 | 0 | 1 |
-| [cle](https://github.com/angr/cle) | [46a37333f4](https://github.com/angr/cle/commit/46a37333f4f59b0facf8774ee743ebc4cc074e9b) | 37 (7 resolved) | 7 | 7 |
+| [cle](https://github.com/angr/cle) | [46a37333f4](https://github.com/angr/cle/commit/46a37333f4f59b0facf8774ee743ebc4cc074e9b) | 37 (7 resolved) | 7 | 8 |
 | [pypcode](https://github.com/angr/pypcode) | [559aacdc9d](https://github.com/angr/pypcode/commit/559aacdc9d363fd19477d9daa40721279cd99248) | 2 | 0 | 1 |
 | [pyvex](https://github.com/angr/pyvex) | [bdd5441035](https://github.com/angr/pyvex/commit/bdd5441035e02920eaa72c1c3cf9a4f0d572104d) | 8 (5 resolved) | 0 | 0 |
 
@@ -66,7 +66,9 @@ Applied:
 - [#6751](https://github.com/angr/angr/pull/6751) Preserve DirtyExpression guard and memory address during rewriting
 - [#6793](https://github.com/angr/angr/pull/6793) Support narrow p-code pointer widths
 - [#6794](https://github.com/angr/angr/pull/6794) SimWindows: Add the Windows ARM and AArch64 syscall calling conventions.
+- [#6796](https://github.com/angr/angr/pull/6796) AIL: Support addresses that do not fit in a signed 64-bit integer.
 - [#6798](https://github.com/angr/angr/pull/6798) AIL: Support processor-specific p-code memory spaces
+- [#6804](https://github.com/angr/angr/pull/6804) Tolerate an architecture that has no program counter.
 - [#6807](https://github.com/angr/angr/pull/6807) SimState: Fix unbounded recursion when creating a state on PIC-24 and dsPIC
 - [#6808](https://github.com/angr/angr/pull/6808) SpillingCFG: Index the nodes that an edge inserts into the graph
 - [#6809](https://github.com/angr/angr/pull/6809) CFGFast: Stop aborting when a pre-executed block ends in a failure exit
@@ -113,8 +115,9 @@ Applied:
 - [#6948](https://github.com/angr/angr/pull/6948) CFGFast: Preserve authoritative function starts during reconstruction -- resolved: union merge of tests: tests/analyses/cfg/test_cfgfast.py
 - [#6950](https://github.com/angr/angr/pull/6950) Recover semantic main prototypes from libc startup
 - [#6951](https://github.com/angr/angr/pull/6951) sim_type: stop name-keyed memos collapsing distinct anonymous aggregates
-- [#6952](https://github.com/angr/angr/pull/6952) Decompiler: rebind breaks and continues that no longer reach their target
 - [#6953](https://github.com/angr/angr/pull/6953) Ssailification: seed the SSA traversal from the entry Clinic resolves
+- [#6954](https://github.com/angr/angr/pull/6954) Preserve loop-header variables during expression folding
+- [#6955](https://github.com/angr/angr/pull/6955) Decompiler: Preserve dereference precedence in member access -- resolved: union merge of tests: tests/analyses/decompiler/test_structured_codegen.py
 
 Skipped at assembly:
 - [#6817](https://github.com/angr/angr/pull/6817) Pcode: Disassemble lazily and match VEX's block cache size. -- conflicts with the applied set: angr/engines/pcode/lifter.py, tests/engines/pcode/test_pcode.py
@@ -124,6 +127,7 @@ Skipped at assembly:
 - [#6932](https://github.com/angr/angr/pull/6932) Pcode: Lift an architecture whose word is not a power of two -- conflicts with the applied set: angr/engines/pcode/lifter.py, tests/engines/pcode/test_pcode.py
 - [#6933](https://github.com/angr/angr/pull/6933) SimState: Register a plugin before initializing it -- conflicts with the applied set: angr/sim_state.py
 - [#6936](https://github.com/angr/angr/pull/6936) Make function graphs observable and owned -- conflicts with the applied set: angr/knowledge_plugins/functions/soot_function.py
+- [#6956](https://github.com/angr/angr/pull/6956) Decompiler: Recover variadic arguments through gettext -- conflicts in tests could not be union-merged: tests/analyses/decompiler/test_variadic_callsite_args.py
 
 Excluded by selection:
 - [#6658](https://github.com/angr/angr/pull/6658) Add first-class WebAssembly runtime support -- conflicts with the upstream default branch
@@ -131,9 +135,7 @@ Excluded by selection:
 - [#6742](https://github.com/angr/angr/pull/6742) Decompiler: preserve equal replacement block keys -- checks not green: Test Results concluded FAILURE
 - [#6743](https://github.com/angr/angr/pull/6743) Decompiler: reject ambiguous duplication reinsertion candidates -- draft
 - [#6752](https://github.com/angr/angr/pull/6752) Decompiler: preserve VEX dirty effects through simplification -- draft
-- [#6795](https://github.com/angr/angr/pull/6795) SimCGC: Keep the CGC defaults when a dump omits its optional backers. -- checks not green: Test Results concluded FAILURE
-- [#6796](https://github.com/angr/angr/pull/6796) AIL: Support addresses that do not fit in a signed 64-bit integer. -- checks not green: docs/readthedocs.org:angr is FAILURE
-- [#6804](https://github.com/angr/angr/pull/6804) Tolerate an architecture that has no program counter. -- checks not green: docs/readthedocs.org:angr is FAILURE
+- [#6795](https://github.com/angr/angr/pull/6795) SimCGC: Keep the CGC defaults when a dump omits its optional backers. -- checks not green: Test Results concluded FAILURE, codecov/patch concluded FAILURE
 - [#6805](https://github.com/angr/angr/pull/6805) CFGFast: Fix the default exit of one-instruction blocks on delay-slot architectures -- checks not green: docs/readthedocs.org:angr is PENDING
 - [#6824](https://github.com/angr/angr/pull/6824) Spilling stores: Fix copy() and stop remapping LMDB under an open transaction. -- checks not green: docs/readthedocs.org:angr is PENDING
 - [#6829](https://github.com/angr/angr/pull/6829) Decompiler: Keep the provisional call return read by machine code -- conflicts with the upstream default branch
@@ -141,11 +143,12 @@ Excluded by selection:
 - [#6845](https://github.com/angr/angr/pull/6845) Decompiler: preserve function entries during deduplication -- checks not green: Test Results concluded FAILURE
 - [#6853](https://github.com/angr/angr/pull/6853) Decompiler: Preserve virtual-variable bindings across index collisions -- conflicts with the upstream default branch
 - [#6854](https://github.com/angr/angr/pull/6854) Decompiler: Lower guarded loads to conditional expressions -- checks not green: Test Results concluded FAILURE
-- [#6861](https://github.com/angr/angr/pull/6861) CFGFast: Use a Mach-O function-start table for what it does not otherwise find -- checks not green: Test Results concluded FAILURE
+- [#6861](https://github.com/angr/angr/pull/6861) CFGFast: Use a Mach-O function-start table for what it does not otherwise find -- checks not green: Test Results concluded FAILURE, codecov/patch concluded FAILURE, codecov/project concluded FAILURE
 - [#6864](https://github.com/angr/angr/pull/6864) CFG: Read a blob's executable map from its segments when it has one -- checks not green: Test Results concluded FAILURE
 - [#6904](https://github.com/angr/angr/pull/6904) Decompiler: Distinguish retries from structuring updates -- checks not green: docs/readthedocs.org:angr is FAILURE
 - [#6949](https://github.com/angr/angr/pull/6949) SootClassHierarchy: Answer the subclass question for an interface -- checks not green: codecov/patch concluded FAILURE
-- [#6954](https://github.com/angr/angr/pull/6954) Preserve loop-header variables during expression folding -- checks not green: ci / Lint concluded FAILURE, ci / Typecheck concluded FAILURE
+- [#6952](https://github.com/angr/angr/pull/6952) Decompiler: rebind breaks and continues that no longer reach their target -- BreakRebinder rewrites switch-end breaks into a backwards goto; fails #6938's test_goto_leaving_a_switch_from_inside_a_loop_stays_a_goto; master+#6952 alone reproduces
+- [#6957](https://github.com/angr/angr/pull/6957) CFGFast: Recognize i686 MinGW stack probes -- checks not green: Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, ci / Test (0) is IN_PROGRESS, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (3) is IN_PROGRESS, ci / Test (4) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS, ci / Test (6) is IN_PROGRESS, ci / Test (7) is IN_PROGRESS, ci / Test (8) is IN_PROGRESS, ci / Test (9) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING
 
 
 ### archinfo
@@ -208,7 +211,7 @@ Applied:
 - [#786](https://github.com/angr/cle/pull/786) Use SimData types for untyped externs -- resolved: union merge of tests: tests/test_extern.py
 - [#787](https://github.com/angr/cle/pull/787) Load a Mach-O relocatable object
 - [#790](https://github.com/angr/cle/pull/790) PE: Back the last byte of the image the section table declares -- resolved: union merge of tests: tests/test_pe.py
-- [#791](https://github.com/angr/cle/pull/791) ELF: Take the word size from the machine, not the container
+- [#792](https://github.com/angr/cle/pull/792) ELF: Survive a GNU hash table that declares no buckets
 
 Skipped at assembly:
 - [#725](https://github.com/angr/cle/pull/725) Load minidumps whose writer left out a stream -- conflicts with the applied set: cle/backends/minidump/__init__.py, tests/test_minidump.py
@@ -221,12 +224,13 @@ Skipped at assembly:
 
 Excluded by selection:
 - [#704](https://github.com/angr/cle/pull/704) Test CLE under Pyodide -- depends on angr/angr#6658 which is excluded: conflicts with the upstream default branch
-- [#718](https://github.com/angr/cle/pull/718) Fix Clemory backer removal and the BackedCGC backend -- depends on angr/angr#6795 which is excluded: checks not green: Test Results concluded FAILURE
-- [#754](https://github.com/angr/cle/pull/754) Mach-O: Register the LC_FUNCTION_STARTS entries as function hints -- depends on angr/angr#6861 which is excluded: checks not green: Test Results concluded FAILURE
+- [#718](https://github.com/angr/cle/pull/718) Fix Clemory backer removal and the BackedCGC backend -- depends on angr/angr#6795 which is excluded: checks not green: Test Results concluded FAILURE, codecov/patch concluded FAILURE
+- [#754](https://github.com/angr/cle/pull/754) Mach-O: Register the LC_FUNCTION_STARTS entries as function hints -- depends on angr/angr#6861 which is excluded: checks not green: Test Results concluded FAILURE, codecov/patch concluded FAILURE, codecov/project concluded FAILURE
 - [#758](https://github.com/angr/cle/pull/758) ELFCore: Keep the permissions of the mappings it turns into blobs -- depends on angr/angr#6864 which is excluded: checks not green: Test Results concluded FAILURE
 - [#771](https://github.com/angr/cle/pull/771) ELF: Search /usr/lib/debug for a separate debug file -- draft
 - [#784](https://github.com/angr/cle/pull/784) ELF: Read EF_ARM_BE8 -- checks not green: Test windows-2022 concluded CANCELLED, Test macos-15 concluded FAILURE
 - [#789](https://github.com/angr/cle/pull/789) PE: Separate GNU EH-frame hints from unwind entries -- checks not green: ci / Test (0) concluded FAILURE, ci / Test (3) concluded FAILURE, ci / Test (4) concluded FAILURE, Test windows-2022 concluded CANCELLED, Test macos-15 concluded FAILURE
+- [#791](https://github.com/angr/cle/pull/791) ELF: Take the word size from the machine, not the container -- resolves x32 (ELFCLASS32/EM_X86_64) objects to AMD64 so ELFCore.__parse_auxv misreads the x32 auxv note; fails #734's test_prstatus_abi_mismatch
 
 
 ### pypcode

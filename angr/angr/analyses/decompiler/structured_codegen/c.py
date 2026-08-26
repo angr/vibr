@@ -2058,7 +2058,17 @@ class CVariableField(CExpression):
         if self.collapsed:
             yield "...", self
             return
+
+        # Member access is a postfix operation, so an operator expression used as its base must be grouped.
+        # Parentheses internal to a unary operation only group its operand: `*(ptr)->field` still parses as
+        # `*((ptr)->field)`, whereas the represented expression is `(*(ptr))->field`.
+        wrap_variable = isinstance(self.variable, (CUnaryOp, CBinaryOp, CTypeCast))
+        paren = CClosingObject("(")
+        if wrap_variable:
+            yield "(", paren
         yield from self.variable.c_repr_chunks()
+        if wrap_variable:
+            yield ")", paren
         if self.var_is_ptr:
             yield "->", self
         else:

@@ -1,13 +1,13 @@
 {
  "schema": 1,
- "generated_at": "2026-08-26T09:17:32+00:00",
- "selection_generated_at": "2026-08-26T09:02:28+00:00",
+ "generated_at": "2026-08-26T11:24:39+00:00",
+ "selection_generated_at": "2026-08-26T11:24:39+00:00",
  "components": {
   "angr": {
    "upstream": "https://github.com/angr/angr",
    "default_branch": "master",
    "base": "829ea98f577ac04d9cd3927ddc868713a5b0a1ab",
-   "head": "5ade7d75265b1726037d48946324ff7810b6cc2d",
+   "head": "6af79352850e363f8d09279760a61e81a632d6e7",
    "applied": [
     {
      "number": 6655,
@@ -82,10 +82,22 @@
      "head_sha": "698ceefa134caf907f68d2d9ed99ead0b8bfb8e5"
     },
     {
+     "number": 6796,
+     "title": "AIL: Support addresses that do not fit in a signed 64-bit integer.",
+     "url": "https://github.com/angr/angr/pull/6796",
+     "head_sha": "1c73ad05cc79f0aa6c4600bfaa3f37e2dcbd172a"
+    },
+    {
      "number": 6798,
      "title": "AIL: Support processor-specific p-code memory spaces",
      "url": "https://github.com/angr/angr/pull/6798",
      "head_sha": "614215f8feb5922db2697bc03850660b22dac110"
+    },
+    {
+     "number": 6804,
+     "title": "Tolerate an architecture that has no program counter.",
+     "url": "https://github.com/angr/angr/pull/6804",
+     "head_sha": "5743fffd8cf931917a80e8b49cef2d45ce6403ee"
     },
     {
      "number": 6807,
@@ -381,16 +393,23 @@
      "head_sha": "90510f944091f8575e4847860497f2679e61b1b0"
     },
     {
-     "number": 6952,
-     "title": "Decompiler: rebind breaks and continues that no longer reach their target",
-     "url": "https://github.com/angr/angr/pull/6952",
-     "head_sha": "13276372d5c009f0f72c6a53a738698ada022a3e"
-    },
-    {
      "number": 6953,
      "title": "Ssailification: seed the SSA traversal from the entry Clinic resolves",
      "url": "https://github.com/angr/angr/pull/6953",
      "head_sha": "61129ae057239e23ad9913b91a90775483fd25f8"
+    },
+    {
+     "number": 6954,
+     "title": "Preserve loop-header variables during expression folding",
+     "url": "https://github.com/angr/angr/pull/6954",
+     "head_sha": "3082ac82c7ff8b5f4095472f0137b39605c6caa0"
+    },
+    {
+     "number": 6955,
+     "title": "Decompiler: Preserve dereference precedence in member access",
+     "url": "https://github.com/angr/angr/pull/6955",
+     "resolution": "union merge of tests: tests/analyses/decompiler/test_structured_codegen.py",
+     "head_sha": "a25144cc6f613f79ac8b2f209f49b1a366c462de"
     }
    ],
    "skipped": [
@@ -435,6 +454,12 @@
      "title": "Make function graphs observable and owned",
      "url": "https://github.com/angr/angr/pull/6936",
      "reason": "conflicts with the applied set: angr/knowledge_plugins/functions/soot_function.py"
+    },
+    {
+     "number": 6956,
+     "title": "Decompiler: Recover variadic arguments through gettext",
+     "url": "https://github.com/angr/angr/pull/6956",
+     "reason": "conflicts in tests could not be union-merged: tests/analyses/decompiler/test_variadic_callsite_args.py"
     }
    ],
    "excluded": [
@@ -477,25 +502,9 @@
      "number": 6795,
      "title": "SimCGC: Keep the CGC defaults when a dump omits its optional backers.",
      "url": "https://github.com/angr/angr/pull/6795",
-     "reason": "checks not green: Test Results concluded FAILURE",
+     "reason": "checks not green: Test Results concluded FAILURE, codecov/patch concluded FAILURE",
      "depends_on": [
       "angr/cle#718"
-     ]
-    },
-    {
-     "number": 6796,
-     "title": "AIL: Support addresses that do not fit in a signed 64-bit integer.",
-     "url": "https://github.com/angr/angr/pull/6796",
-     "reason": "checks not green: docs/readthedocs.org:angr is FAILURE",
-     "depends_on": []
-    },
-    {
-     "number": 6804,
-     "title": "Tolerate an architecture that has no program counter.",
-     "url": "https://github.com/angr/angr/pull/6804",
-     "reason": "checks not green: docs/readthedocs.org:angr is FAILURE",
-     "depends_on": [
-      "angr/archinfo#367"
      ]
     },
     {
@@ -551,7 +560,7 @@
      "number": 6861,
      "title": "CFGFast: Use a Mach-O function-start table for what it does not otherwise find",
      "url": "https://github.com/angr/angr/pull/6861",
-     "reason": "checks not green: Test Results concluded FAILURE",
+     "reason": "checks not green: Test Results concluded FAILURE, codecov/patch concluded FAILURE, codecov/project concluded FAILURE",
      "depends_on": [
       "angr/cle#754"
      ]
@@ -581,10 +590,17 @@
      "depends_on": []
     },
     {
-     "number": 6954,
-     "title": "Preserve loop-header variables during expression folding",
-     "url": "https://github.com/angr/angr/pull/6954",
-     "reason": "checks not green: ci / Lint concluded FAILURE, ci / Typecheck concluded FAILURE",
+     "number": 6952,
+     "title": "Decompiler: rebind breaks and continues that no longer reach their target",
+     "url": "https://github.com/angr/angr/pull/6952",
+     "reason": "BreakRebinder rewrites switch-end breaks into a backwards goto; fails #6938's test_goto_leaving_a_switch_from_inside_a_loop_stays_a_goto; master+#6952 alone reproduces",
+     "depends_on": []
+    },
+    {
+     "number": 6957,
+     "title": "CFGFast: Recognize i686 MinGW stack probes",
+     "url": "https://github.com/angr/angr/pull/6957",
+     "reason": "checks not green: Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, ci / Test (0) is IN_PROGRESS, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (3) is IN_PROGRESS, ci / Test (4) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS, ci / Test (6) is IN_PROGRESS, ci / Test (7) is IN_PROGRESS, ci / Test (8) is IN_PROGRESS, ci / Test (9) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING",
      "depends_on": []
     }
    ]
@@ -659,7 +675,7 @@
    "upstream": "https://github.com/angr/cle",
    "default_branch": "master",
    "base": "46a37333f4f59b0facf8774ee743ebc4cc074e9b",
-   "head": "d7a986635064137e1452c24569544801f53d5d31",
+   "head": "54e3021fdf56b5df78575d21e6ac6aff1c62fff0",
    "applied": [
     {
      "number": 714,
@@ -885,10 +901,10 @@
      "head_sha": "b43adc6bd237e2fbbeb96820d149935c3f515ef1"
     },
     {
-     "number": 791,
-     "title": "ELF: Take the word size from the machine, not the container",
-     "url": "https://github.com/angr/cle/pull/791",
-     "head_sha": "fc9980672a4aeeee06f2aa80c90723fa2d4e9953"
+     "number": 792,
+     "title": "ELF: Survive a GNU hash table that declares no buckets",
+     "url": "https://github.com/angr/cle/pull/792",
+     "head_sha": "43611edc172fe797df7b2c204c39d0b29816bd01"
     }
    ],
    "skipped": [
@@ -952,7 +968,7 @@
      "number": 718,
      "title": "Fix Clemory backer removal and the BackedCGC backend",
      "url": "https://github.com/angr/cle/pull/718",
-     "reason": "depends on angr/angr#6795 which is excluded: checks not green: Test Results concluded FAILURE",
+     "reason": "depends on angr/angr#6795 which is excluded: checks not green: Test Results concluded FAILURE, codecov/patch concluded FAILURE",
      "depends_on": [
       "angr/angr#6795"
      ]
@@ -961,7 +977,7 @@
      "number": 754,
      "title": "Mach-O: Register the LC_FUNCTION_STARTS entries as function hints",
      "url": "https://github.com/angr/cle/pull/754",
-     "reason": "depends on angr/angr#6861 which is excluded: checks not green: Test Results concluded FAILURE",
+     "reason": "depends on angr/angr#6861 which is excluded: checks not green: Test Results concluded FAILURE, codecov/patch concluded FAILURE, codecov/project concluded FAILURE",
      "depends_on": [
       "angr/angr#6861"
      ]
@@ -1000,6 +1016,13 @@
      "depends_on": [
       "angr/angr#6948"
      ]
+    },
+    {
+     "number": 791,
+     "title": "ELF: Take the word size from the machine, not the container",
+     "url": "https://github.com/angr/cle/pull/791",
+     "reason": "resolves x32 (ELFCLASS32/EM_X86_64) objects to AMD64 so ELFCore.__parse_auxv misreads the x32 auxv note; fails #734's test_prstatus_abi_mismatch",
+     "depends_on": []
     }
    ]
   },
