@@ -1,13 +1,13 @@
 {
  "schema": 1,
- "generated_at": "2026-08-26T11:24:39+00:00",
- "selection_generated_at": "2026-08-26T11:24:39+00:00",
+ "generated_at": "2026-08-26T12:06:05+00:00",
+ "selection_generated_at": "2026-08-26T12:06:05+00:00",
  "components": {
   "angr": {
    "upstream": "https://github.com/angr/angr",
    "default_branch": "master",
    "base": "829ea98f577ac04d9cd3927ddc868713a5b0a1ab",
-   "head": "6af79352850e363f8d09279760a61e81a632d6e7",
+   "head": "87152d6345b28b7afe30f1ef301978b3f760b3a4",
    "applied": [
     {
      "number": 6655,
@@ -228,13 +228,6 @@
      "head_sha": "4144f874d20c60ce7baa761d0741d9ce5cbb4358"
     },
     {
-     "number": 6889,
-     "title": "CFGFast: Do not decode an object CLE invented",
-     "url": "https://github.com/angr/angr/pull/6889",
-     "resolution": "union merge of tests: tests/analyses/cfg/test_cfgfast.py",
-     "head_sha": "8f8effcf71d77a32846a7a18deff642dbff1a8fd"
-    },
-    {
      "number": 6900,
      "title": "Decompiler: Track ARM registers that save and restore the stack pointer",
      "url": "https://github.com/angr/angr/pull/6900",
@@ -410,6 +403,12 @@
      "url": "https://github.com/angr/angr/pull/6955",
      "resolution": "union merge of tests: tests/analyses/decompiler/test_structured_codegen.py",
      "head_sha": "a25144cc6f613f79ac8b2f209f49b1a366c462de"
+    },
+    {
+     "number": 6957,
+     "title": "CFGFast: Recognize i686 MinGW stack probes",
+     "url": "https://github.com/angr/angr/pull/6957",
+     "head_sha": "a302f63430630aa8306cbb47a360f939bacc34f3"
     }
    ],
    "skipped": [
@@ -576,6 +575,15 @@
      ]
     },
     {
+     "number": 6889,
+     "title": "CFGFast: Do not decode an object CLE invented",
+     "url": "https://github.com/angr/angr/pull/6889",
+     "reason": "depends on angr/cle#765 which is excluded: moves a rebased object above the image instead of to 0; fails #730's test_overlap.py::test_outer_object_does_not_move_rebased_objects and #721's test_tls_resiliency.py::test_tls_24bit_arch, which assert the old placement",
+     "depends_on": [
+      "angr/cle#765"
+     ]
+    },
+    {
      "number": 6904,
      "title": "Decompiler: Distinguish retries from structuring updates",
      "url": "https://github.com/angr/angr/pull/6904",
@@ -597,10 +605,24 @@
      "depends_on": []
     },
     {
-     "number": 6957,
-     "title": "CFGFast: Recognize i686 MinGW stack probes",
-     "url": "https://github.com/angr/angr/pull/6957",
+     "number": 6958,
+     "title": "Decompiler: resolve chained AIL merge graph splits",
+     "url": "https://github.com/angr/angr/pull/6958",
      "reason": "checks not green: Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, ci / Test (0) is IN_PROGRESS, ci / Test (1) is IN_PROGRESS, ci / Test (2) is IN_PROGRESS, ci / Test (3) is IN_PROGRESS, ci / Test (4) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS, ci / Test (6) is IN_PROGRESS, ci / Test (7) is IN_PROGRESS, ci / Test (8) is IN_PROGRESS, ci / Test (9) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING",
+     "depends_on": []
+    },
+    {
+     "number": 6959,
+     "title": "Decompiler: handle shift counts wider than shifted values",
+     "url": "https://github.com/angr/angr/pull/6959",
+     "reason": "checks not green: ci / Build is IN_PROGRESS, Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, Test installation (windows-2025, py3.12) is IN_PROGRESS, Test installation (macos-26, py3.12) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING",
+     "depends_on": []
+    },
+    {
+     "number": 6960,
+     "title": "CFGBase: Do not let a zero-size node anchor a normalization group",
+     "url": "https://github.com/angr/angr/pull/6960",
+     "reason": "checks not green: ci / Build is IN_PROGRESS, Test (1) is IN_PROGRESS, Test (2) is IN_PROGRESS, Test (3) is IN_PROGRESS, Test (4) is IN_PROGRESS, Test (5) is IN_PROGRESS, Test (6) is IN_PROGRESS, Test (7) is IN_PROGRESS, Test (8) is IN_PROGRESS, Test (9) is IN_PROGRESS, Test (10) is IN_PROGRESS, Test installation (windows-2025, py3.12) is IN_PROGRESS, Test installation (macos-26, py3.12) is IN_PROGRESS, Test installation (ubuntu-24.04, py3.14) is IN_PROGRESS, docs/readthedocs.org:angr is PENDING",
      "depends_on": []
     }
    ]
@@ -675,7 +697,7 @@
    "upstream": "https://github.com/angr/cle",
    "default_branch": "master",
    "base": "46a37333f4f59b0facf8774ee743ebc4cc074e9b",
-   "head": "54e3021fdf56b5df78575d21e6ac6aff1c62fff0",
+   "head": "d72e70a0bdffa2aab8f67e03e671734804ce8f47",
    "applied": [
     {
      "number": 714,
@@ -809,13 +831,6 @@
      "url": "https://github.com/angr/cle/pull/760",
      "resolution": "union merge of tests: tests/test_regions.py",
      "head_sha": "a493c20f352931babb0a32b088df782f08aa12eb"
-    },
-    {
-     "number": 765,
-     "title": "Keep a rebased object out of the null page",
-     "url": "https://github.com/angr/cle/pull/765",
-     "resolution": "union merge of tests: tests/test_rebase.py",
-     "head_sha": "67f1f456a792473ca29bc61a3b9f3a66df5333d1"
     },
     {
      "number": 766,
@@ -992,6 +1007,13 @@
      ]
     },
     {
+     "number": 765,
+     "title": "Keep a rebased object out of the null page",
+     "url": "https://github.com/angr/cle/pull/765",
+     "reason": "moves a rebased object above the image instead of to 0; fails #730's test_overlap.py::test_outer_object_does_not_move_rebased_objects and #721's test_tls_resiliency.py::test_tls_24bit_arch, which assert the old placement",
+     "depends_on": []
+    },
+    {
      "number": 771,
      "title": "ELF: Search /usr/lib/debug for a separate debug file",
      "url": "https://github.com/angr/cle/pull/771",
@@ -1012,7 +1034,7 @@
      "number": 789,
      "title": "PE: Separate GNU EH-frame hints from unwind entries",
      "url": "https://github.com/angr/cle/pull/789",
-     "reason": "checks not green: ci / Test (0) concluded FAILURE, ci / Test (3) concluded FAILURE, ci / Test (4) concluded FAILURE, Test windows-2022 concluded CANCELLED, Test macos-15 concluded FAILURE",
+     "reason": "checks not green: ci / Test (1) is IN_PROGRESS, ci / Test (5) is IN_PROGRESS, Test windows-2022 concluded CANCELLED, Test macos-15 concluded FAILURE",
      "depends_on": [
       "angr/angr#6948"
      ]

@@ -1341,29 +1341,6 @@ class TestCfgfast(unittest.TestCase):
 
         assert 0x4249F4 not in cfg.kb.functions
         assert 0x424CC0 in cfg.kb.functions
-    def test_cfg_does_not_decode_an_object_cle_invented(self):
-        # cle##externs holds no file content, so an address in it that nothing is hooked at is
-        # zero fill: decoding it yields blocks until the object runs out. Packing the objects
-        # together puts it directly above the image, which is where this blob's recovery runs off
-        # the end into it.
-        path = os.path.join(test_location, "armel", "i2c_api.o")
-        proj = angr.Project(
-            path,
-            auto_load_libs=False,
-            main_opts={"backend": "blob", "arch": "ARMEL", "base_addr": 0x1000},
-            rebase_granularity=1,
-        )
-        extern = proj.loader.extern_object
-        assert extern.min_addr == proj.loader.main_object.max_addr + 1
-
-        cfg = proj.analyses.CFGFast(normalize=True)
-
-        image = [n for n in cfg.model.nodes() if n.addr <= proj.loader.main_object.max_addr]
-        invented = [
-            n for n in cfg.model.nodes() if extern.min_addr <= n.addr <= extern.max_addr and not proj.is_hooked(n.addr)
-        ]
-        assert image
-        assert not invented, f"{len(invented)} blocks decoded out of {extern}: {invented[:3]}"
     def test_dropping_a_bad_function_keeps_the_blocks_another_function_owns(self):
         # drop_bad_functions() drops 0x46cd99: it does not return, it has three blocks, and the last of them
         # has no successors and is followed by alignment padding. That last block is 0x46cdb0, the fall-through
