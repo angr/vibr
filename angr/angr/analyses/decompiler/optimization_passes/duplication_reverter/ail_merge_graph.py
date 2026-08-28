@@ -5,6 +5,7 @@ from collections import defaultdict
 
 import networkx as nx
 
+from angr.ailment import Const
 from angr.ailment.block import Block
 from angr.ailment.statement import ConditionalJump
 
@@ -16,10 +17,15 @@ from .utils import (
     correct_jump_targets,
     deepcopy_ail_anyjump,
     replace_node_in_graph,
-    set_conditional_jump_target_addrs,
 )
 
 _l = logging.getLogger(name=__name__)
+
+
+def _replace_block_key[V](mapping: dict[Block, V], old_key: Block, new_key: Block) -> None:
+    replacement = {new_key if key is old_key else key: value for key, value in mapping.items()}
+    mapping.clear()
+    mapping.update(replacement)
 
 
 class AILBlockSplit:
@@ -244,15 +250,22 @@ class AILMergeGraph:
                 b0, b1 = merge_end_pair
 
             if true_target == self._find_og_start_by_merge_end(b0):
-                true_block, false_block = b0, b1
+                true_successor, false_successor = b0, b1
             else:
-                true_block, false_block = b1, b0
+                true_successor, false_successor = b1, b0
 
-            cond_copy.statements[-1] = set_conditional_jump_target_addrs(
-                cond_jump_stmt,
-                true_block.addr,
-                false_block.addr,
+            true_target_expr = cond_jump_stmt.true_target
+            false_target_expr = cond_jump_stmt.false_target
+            assert isinstance(true_target_expr, Const)
+            assert isinstance(false_target_expr, Const)
+            cond_jump_stmt.true_target = Const(
+                true_target_expr.idx, true_successor.addr, true_target_expr.bits, **true_target_expr.tags
             )
+            cond_jump_stmt.true_target_idx = true_successor.idx
+            cond_jump_stmt.false_target = Const(
+                false_target_expr.idx, false_successor.addr, false_target_expr.bits, **false_target_expr.tags
+            )
+            cond_jump_stmt.false_target_idx = false_successor.idx
 
             self.graph.add_edge(match_node, cond_copy)
             self.graph.add_edge(cond_copy, b0)
@@ -432,8 +445,8 @@ class AILMergeGraph:
         for original, updated in update_map.items():
             for k in list(self.original_split_blocks.keys()):
                 if k == original:
-                    self.original_split_blocks[updated] = self.original_split_blocks[k]
-                    del self.original_split_blocks[k]
+                    _replace_block_key(self.original_split_blocks, k, updated)
+                    break
 
             for v in self.original_split_blocks.values():
                 for sblock in v:
@@ -443,8 +456,8 @@ class AILMergeGraph:
 
             for k in list(self.original_blocks.keys()):
                 if k == original:
-                    self.original_blocks[updated] = self.original_blocks[k]
-                    del self.original_blocks[k]
+                    _replace_block_key(self.original_blocks, k, updated)
+                    break
 
     def _find_merge_block_by_original(self, block: Block):
         for merge_block, originals in self.merge_blocks_to_originals.items():

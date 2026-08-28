@@ -441,21 +441,9 @@ class SimState[IPTypeConc, IPTypeSym](PluginHub[SimStatePlugin]):
             return super().has_plugin(name) or super().has_plugin(name + "_soot")
         return super().has_plugin(name)
 
-    def register_plugin(self, name, plugin, inhibit_init=False) -> SimStatePlugin:  # pylint: disable=arguments-differ
-        """
-        Add ``plugin`` to the active plugins under ``name`` and run its initializer.
-
-        :param name:         The name to register the plugin under.
-        :param plugin:       The plugin to register.
-        :param inhibit_init: Register the plugin without calling its ``init_state()``.
-        :return:             The registered plugin.
-        """
-        # l.debug("Adding plugin %s of type %s", name, plugin.__class__.__name__)
-        plugin.set_state(self)
-        # Register before initializing. init_state() can come back through the hub for this same
-        # plugin: the history plugin records an event for every value it makes the state fill in,
-        # so it has to be findable while it is still initializing.
+    def register_plugin(self, name, plugin, inhibit_init=False):  # pylint: disable=arguments-differ
         super().register_plugin(name, plugin)
+        plugin.set_state(self)
         if not inhibit_init:
             plugin.init_state()
         return plugin

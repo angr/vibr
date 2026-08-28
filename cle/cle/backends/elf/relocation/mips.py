@@ -10,12 +10,10 @@ include/elf/mips.h in the binutils source code.
 
 from __future__ import annotations
 
-import logging
 from ctypes import c_int16
 
 from archinfo import Endness
 
-from .elfreloc import ELFReloc
 from .generic import (
     GenericAbsoluteAddendReloc,
     GenericAbsoluteReloc,
@@ -25,8 +23,6 @@ from .generic import (
     GenericTLSModIdReloc,
     GenericTLSOffsetReloc,
 )
-
-log = logging.getLogger(name=__name__)
 
 # pylint: disable=missing-class-docstring
 
@@ -73,92 +69,57 @@ class R_MIPS_TLS_DTPREL32(GenericTLSDoffsetReloc):
     __slots__ = ()
 
 
-class MipsHalfwordReloc(ELFReloc):
-    """
-    Common behavior of R_MIPS_HI16 and R_MIPS_LO16, which relocate the 16-bit immediate field of
-    one instruction each so that the pair computes S + AHL at run time.
-    """
+class R_MIPS_HI16(GenericAbsoluteReloc):
 
-    __slots__ = ()
-
-    @property
-    def value(self):
-        assert self.resolvedby is not None
-        # In a REL object the addend lives in the instruction, and what ELFReloc reads at the
-        # relocated address is the whole instruction rather than an addend, so only a RELA
-        # relocation has a usable one here.
-        return self.resolvedby.rebased_addr + (self.addend if self.is_rela else 0)
-
-    @property
-    def immediate_addr(self):
-        """
-        The address of the 16-bit immediate field, which is the low halfword of the instruction.
-        """
-        if self.arch.memory_endness == Endness.BE:
-            return self.dest_addr + 2
-        return self.dest_addr
-
-    @property
-    def implicit_addend(self):
-        """
-        The part of the addend the producer left in the immediate field. A RELA relocation
-        carries its whole addend in r_addend and overwrites the field instead.
-        """
-        if self.is_rela:
-            return 0
-        return self.owner.memory.unpack_word(self.immediate_addr, size=2)
-
-
-class R_MIPS_HI16(MipsHalfwordReloc):
     __slots__ = ()
 
     def find_matching_lo16_relocation(self):
-        """
-        The R_MIPS_LO16 holding the low half of a REL addend, or None if the object has none.
-        The ABI requires it to follow its R_MIPS_HI16 in the same relocation table.
-        """
         current_hi16_index = self.owner.relocs.index(self)
         return next(
-            (
-                reloc
-                for reloc in self.owner.relocs[current_hi16_index:]
-                if (self.symbol == reloc.symbol and type(reloc) is R_MIPS_LO16)
-            ),
-            None,
+            reloc
+            for reloc in self.owner.relocs[current_hi16_index:]
+            if (self.symbol == reloc.symbol and type(reloc) is R_MIPS_LO16)
         )
 
     def relocate(self):
         if not self.resolved:
             return False
 
-        value = self.value
-        if not self.is_rela:
-            # REL splits the addend across the pair, as AHL = (AHI << 16) + (short)ALO, so the
-            # low half has to be read out of the matching R_MIPS_LO16 instruction.
-            matching_lo16_reloc = self.find_matching_lo16_relocation()
-            if matching_lo16_reloc is None:
-                log.warning("no R_MIPS_LO16 relocation matching the R_MIPS_HI16 at %#x", self.rebased_addr)
-                return False
-            value += c_int16(matching_lo16_reloc.implicit_addend).value
+        # Relocating R_MIPS_HI16 requires to know the value placed at the following R_MIPS_LO16 relocation
+        matching_lo16_reloc_dest_addr = self.find_matching_lo16_relocation().dest_addr
 
-        # %high(S + AHL): the halfword that lui loads so that adding the signed low halfword
-        # written by the matching R_MIPS_LO16 produces S + AHL again.
-        target_value = ((value - c_int16(value).value) >> 16) + self.implicit_addend
+        dest_addr = self.dest_addr
+        if self.arch.memory_endness == Endness.BE:
+            dest_addr += 2
+            matching_lo16_reloc_dest_addr += 2
 
-        self.owner.memory.pack_word(self.immediate_addr, target_value & 0xFFFF, size=2)
+        matching_lo16_reloc_target_bytes = c_int16(
+            self.owner.memory.unpack_word(matching_lo16_reloc_dest_addr, size=2)
+        ).value
+
+        target_value = (self.value + matching_lo16_reloc_target_bytes) - c_int16(
+            self.value + matching_lo16_reloc_target_bytes
+        ).value
+        target_value = (target_value >> 16) + self.owner.memory.unpack_word(dest_addr, size=2)
+
+        self.owner.memory.pack_word(dest_addr, target_value, size=2)
         return True
 
 
-class R_MIPS_LO16(MipsHalfwordReloc):
+class R_MIPS_LO16(GenericAbsoluteReloc):
     __slots__ = ()
 
     def relocate(self):
         if not self.resolved:
             return False
 
-        target_value = (self.value + self.implicit_addend) & 0xFFFF
+        dest_addr = self.dest_addr
+        if self.arch.memory_endness == Endness.BE:
+            dest_addr += 2
 
-        self.owner.memory.pack_word(self.immediate_addr, target_value, size=2)
+        target_value = (self.value + self.owner.memory.unpack_word(dest_addr, size=2)) & 0xFFFF
+
+        self.owner.memory.pack_word(dest_addr, target_value, size=2)
         return True
 
 

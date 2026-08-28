@@ -14,6 +14,7 @@ from angr.ailment.block_walker import _dispatch_key
 from angr.ailment.constant import UNDETERMINED_SIZE
 from angr.ailment.expression import BinaryOp, StackBaseOffset
 from angr.analyses.analysis import Analysis, register_analysis
+from angr.analyses.decompiler.c_prototype import c_function_type_with_array_return_decay
 from angr.analyses.decompiler.notes.deobfuscated_strings import DeobfuscatedStringsNote
 from angr.analyses.decompiler.peephole_optimizations.cas_intrinsics import cas_intrinsic_name
 from angr.analyses.decompiler.region_identifier import MultiNode
@@ -120,6 +121,12 @@ def qualifies_for_simple_cast(ty1, ty2):
         and isinstance(ty1, (SimTypeInt, SimTypeChar, SimTypeNum, SimTypePointer))
         and isinstance(ty2, (SimTypeInt, SimTypeChar, SimTypeNum, SimTypePointer))
     )
+
+
+def qualifies_for_width_cast(ty):
+    # converting ty to a different width - can a scalar cast do it?
+    # floats are excluded because a float cast converts the value, not the representation
+    return isinstance(ty, (SimTypeInt, SimTypeChar, SimTypeNum, SimTypePointer, SimTypeBottom))
 
 
 def qualifies_for_implicit_cast(ty1, ty2):
@@ -268,7 +275,9 @@ def _is_anonymous_struct_or_union(ty) -> bool:
     return isinstance(ty, SimUnion) and ty.name == "<anon>"
 
 
-def _anonymous_struct_union_to_c_repr_chunks(ty, name, name_type, indent_str: str, indent_delta: int):
+def _anonymous_struct_union_to_c_repr_chunks(
+    ty, name, name_type, indent_str: str, indent_delta: int, memo: tuple[SimType, ...] = ()
+):
     """
     Render an anonymous struct or union inline, as ``struct { ... } name``.
     """
@@ -276,6 +285,7 @@ def _anonymous_struct_union_to_c_repr_chunks(ty, name, name_type, indent_str: st
     yield ("union {\n" if isinstance(ty, SimUnion) else "struct {\n"), None
 
     new_indent_str = (" " * indent_delta) + indent_str
+    new_memo = (*memo, ty)
     members = ty.members if isinstance(ty, SimUnion) else ty.fields
     for k, v in members.items():
         yield from type_to_c_repr_chunks(
@@ -285,6 +295,7 @@ def _anonymous_struct_union_to_c_repr_chunks(ty, name, name_type, indent_str: st
             full=False,
             indent_str=new_indent_str,
             indent_delta=indent_delta,
+            memo=new_memo,
         )
         yield ";\n", None
 
@@ -294,32 +305,55 @@ def _anonymous_struct_union_to_c_repr_chunks(ty, name, name_type, indent_str: st
 
 
 def type_to_c_repr_chunks(
-    ty: SimType, name=None, name_type=None, full=False, indent_str="", indent_delta: int = INDENT_DELTA
+    ty: SimType,
+    name=None,
+    name_type=None,
+    full=False,
+    indent_str="",
+    indent_delta: int = INDENT_DELTA,
+    memo: tuple[SimType, ...] = (),
 ):
     """
     Helper generator function to turn a SimType into generated tuples of (C-string, AST node).
 
     :param indent_delta:    Number of space characters used to indent each struct field one level deeper.
+    :param memo:            The anonymous aggregates already being rendered further up the stack, compared by
+                            identity, so that a self-referential type is elided instead of recursed into.
     """
     if not full and name is not None and _is_anonymous_struct_or_union(ty):
+        if any(ty is enclosing for enclosing in memo):
+            # A recovered type can contain itself. An anonymous aggregate has no name to refer back to,
+            # so the cycle is elided rather than named.
+            yield indent_str, None
+            yield ("union { /* recursive */ } " if isinstance(ty, SimUnion) else "struct { /* recursive */ } "), None
+            yield name, name_type
+            return
         # anonymous structs and unions must be output inline
         yield from _anonymous_struct_union_to_c_repr_chunks(
-            ty, name, name_type, indent_str=indent_str, indent_delta=indent_delta
+            ty, name, name_type, indent_str=indent_str, indent_delta=indent_delta, memo=memo
         )
     elif isinstance(ty, SimStruct):
         if full:
             # struct def preamble
             yield indent_str, None
             if isinstance(ty, SimCppClass):
+                # A class name reaches codegen spelled either way: angr's C++ parser keeps the
+                # elaborated form on the class branch of _cpp_decl_to_type, while the STL
+                # definitions keep the plain one. SimCppClass.__repr__ already accounts for
+                # that; emitting the class-key unconditionally beside the name did not, so an
+                # elaborated name came out as "class class Ns::Type".
+                type_name = ty.name.removeprefix("class ")
                 yield "class ", None
             else:
+                type_name = ty.name
                 yield "typedef struct ", None
-            yield ty.name, ty
+            yield type_name, ty
             yield " {\n", None
 
             # each of the fields
             # fields should be indented
             new_indent_str = (" " * indent_delta) + indent_str
+            new_memo = (*memo, ty)
             for k, v in ty.fields.items():
                 yield from type_to_c_repr_chunks(
                     v,
@@ -328,12 +362,13 @@ def type_to_c_repr_chunks(
                     full=False,
                     indent_str=new_indent_str,
                     indent_delta=indent_delta,
+                    memo=new_memo,
                 )
                 yield ";\n", None
 
             # struct def postamble
             yield "} ", None
-            yield ty.name, ty
+            yield type_name, ty
             yield ";\n\n", None
 
         else:
@@ -879,8 +914,22 @@ class CFunction(CConstruct):  # pylint:disable=abstract-method
 
         # return type
         assert self.functy.returnty is not None
-        yield self.functy.returnty.c_repr(name="").strip(" "), self.functy.returnty
-        yield " ", None
+        return_type_post = None
+        if (
+            isinstance(self.functy.returnty, SimTypePointer)
+            and self.functy.returnty.label is None
+            and isinstance(self.functy.returnty.pts_to, SimTypeArray)
+        ):
+            marker = "\x00"
+            pointer_qualifier = (
+                f"{' '.join(sorted(self.functy.returnty.qualifier))} " if self.functy.returnty.qualifier else ""
+            )
+            return_type_repr = self.functy.returnty.pts_to.c_repr(name=f"(*{pointer_qualifier}{marker})")
+            return_type_pre, return_type_post = return_type_repr.split(marker, 1)
+            yield return_type_pre, self.functy.returnty
+        else:
+            yield self.functy.returnty.c_repr(name="").strip(" "), self.functy.returnty
+            yield " ", None
         # function name
         if self.demangled_name and self.show_demangled_name:
             normalized_name = get_cpp_function_name(self.demangled_name)
@@ -901,6 +950,8 @@ class CFunction(CConstruct):  # pylint:disable=abstract-method
             yield from type_to_c_repr_chunks(arg_type, name=variable.name, name_type=cvariable, full=False)
 
         yield ")", paren
+        if return_type_post is not None:
+            yield return_type_post, CArrayTypeLength(return_type_post)
         # function body
         if self.codegen.braces_on_own_lines:
             yield "\n", None
@@ -1664,13 +1715,16 @@ class CFunctionCall(CExpression):
     @property
     def prototype(self) -> SimTypeFunction | None:  # TODO there should be a prototype for each callsite!
         if self.callee_func is not None and self.callee_func.prototype is not None:
-            proto = self.callee_func.prototype
+            proto = cast(SimTypeFunction, self.callee_func.prototype)
             if self.callee_func.prototype_libname is not None:
                 # we need to deref the prototype in case it uses SimTypeRef internally
                 proto = cast(SimTypeFunction, dereference_simtype_by_lib(proto, self.callee_func.prototype_libname))
-            return proto
+            return c_function_type_with_array_return_decay(proto, self.codegen.project.arch)
         returnty = SimTypeInt(signed=False)
-        return SimTypeFunction([arg.type for arg in self.args], returnty).with_arch(self.codegen.project.arch)
+        return cast(
+            SimTypeFunction,
+            SimTypeFunction([arg.type for arg in self.args], returnty).with_arch(self.codegen.project.arch),
+        )
 
     @property
     def prototype_returnty(self) -> SimType:
@@ -2128,11 +2182,18 @@ class CUnaryOp(CExpression):
         if handler is not None:
             yield from handler()
         else:
-            yield f"UnaryOp {self.op}", self
+            yield from self._c_repr_chunks_opfirst(self.op)
 
     #
     # Handlers
     #
+
+    def _c_repr_chunks_opfirst(self, op):
+        yield op, self
+        paren = CClosingObject("(")
+        yield "(", paren
+        yield from CExpression._try_c_repr_chunks(self.operand)
+        yield ")", paren
 
     def _c_repr_chunks_not(self):
         yield "!", self
@@ -3136,10 +3197,12 @@ class CStructuredCodeGenerator(BaseStructuredCodeGenerator, Analysis, Serializab
 
         self.cnode2ailexpr = {v: k[0] for k, v in self.ailexpr2cnode.items()}
 
+        assert self._func.prototype is not None
+        c_prototype = c_function_type_with_array_return_decay(self._func.prototype, self.project.arch)
         self.cfunc = CFunction(
             self._func.addr,
             self._func.name,
-            self._func.prototype,
+            c_prototype,
             arg_list,
             obj,
             self._variables_in_use,
@@ -3864,8 +3927,23 @@ class CStructuredCodeGenerator(BaseStructuredCodeGenerator, Analysis, Serializab
     def _handle_Stmt_Store(self, stmt: Stmt.Store, **kwargs):
         cdata = self._handle(stmt.data)
 
-        if cdata.type is not None and cdata.type.size != stmt.size * self.project.arch.byte_width:
-            l.error("Store data lifted to a C type with a different size. Decompilation output will be wrong.")
+        store_bits = stmt.size * self.project.arch.byte_width
+        if cdata.type is not None and cdata.type.size != store_bits:
+            if cdata.type.size is not None:
+                l.error(
+                    "Store data lifted to a C type of a different size: %s is %d bits, the store is %d bits. "
+                    "Using the store width.",
+                    cdata.type,
+                    cdata.type.size,
+                    store_bits,
+                )
+            if qualifies_for_width_cast(unpack_typeref(cdata.type)):
+                cdata = CTypeCast(
+                    cdata.type,
+                    self.default_simtype_from_bits(store_bits, signed=getattr(cdata.type, "signed", False)),
+                    cdata,
+                    codegen=self,
+                )
 
         def negotiate(old_ty, proposed_ty):
             # transfer casts from the dst to the src if possible
@@ -4093,15 +4171,10 @@ class CStructuredCodeGenerator(BaseStructuredCodeGenerator, Analysis, Serializab
         else_node = (
             None
             if stmt.false_target is None
-            else CGoto(self._handle(stmt.false_target), stmt.false_target_idx, tags=stmt.tags, codegen=self)
+            else CGoto(self._handle(stmt.false_target), None, tags=stmt.tags, codegen=self)
         )
         return CIfElse(
-            [
-                (
-                    self._handle(stmt.condition),
-                    CGoto(self._handle(stmt.true_target), stmt.true_target_idx, tags=stmt.tags, codegen=self),
-                )
-            ],
+            [(self._handle(stmt.condition), CGoto(self._handle(stmt.true_target), None, tags=stmt.tags, codegen=self))],
             else_node=else_node,
             cstyle_ifs=self.cstyle_ifs,
             tags=stmt.tags,
@@ -4740,7 +4813,8 @@ class MakeTypecastsImplicit(CStructuredCodeWalker):
         return super().handle_CFunctionCall(obj)
 
     def handle_CReturn(self, obj: CReturn):
-        obj.retval = self.collapse(obj.codegen._func.prototype.returnty, obj.retval)
+        assert obj.codegen.cfunc is not None and obj.codegen.cfunc.functy.returnty is not None
+        obj.retval = self.collapse(obj.codegen.cfunc.functy.returnty, obj.retval)
         return super().handle_CReturn(obj)
 
     def handle_CBinaryOp(self, obj: CBinaryOp):

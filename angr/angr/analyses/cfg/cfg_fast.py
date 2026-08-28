@@ -16,7 +16,7 @@ import claripy
 import cle
 import networkx
 import pyvex
-from archinfo import ArchRISCV64, Endness
+from archinfo import Endness
 from archinfo.arch_arm import get_real_address_if_arm, is_arm_arch
 from archinfo.arch_soot import SootAddressDescriptor
 from cle.address_translator import AT
@@ -652,7 +652,7 @@ class CFGFast(ForwardAnalysis[CFGNode, CFGNode, CFGJob, int, object], CFGBase): 
         exceptions=True,
         skip_unmapped_addrs=True,
         nodecode_window_size=2048,
-        nodecode_threshold=0.6,
+        nodecode_threshold=0.3,
         nodecode_step=16483,
         check_funcret_max_job=500,
         indirect_calls_always_return: bool | None = None,
@@ -3269,9 +3269,10 @@ class CFGFast(ForwardAnalysis[CFGNode, CFGNode, CFGJob, int, object], CFGBase): 
         # default statement
         default_branch_ins_addr = None
         if irsb.instruction_addresses:
-            if self.project.arch.branch_delay_slot:
-                if len(irsb.instruction_addresses) > 1:
-                    default_branch_ins_addr = irsb.instruction_addresses[-2]
+            if self.project.arch.branch_delay_slot and len(irsb.instruction_addresses) > 1:
+                # the last instruction is the delay slot, so the branch is the one before it. a
+                # single-instruction block has no delay slot and is its own branch.
+                default_branch_ins_addr = irsb.instruction_addresses[-2]
             else:
                 default_branch_ins_addr = irsb.instruction_addresses[-1]
 
@@ -3652,11 +3653,6 @@ class CFGFast(ForwardAnalysis[CFGNode, CFGNode, CFGJob, int, object], CFGBase): 
         else:
             if self.project.arch.name != "Soot":
                 return_site = addr + irsb.size  # We assume the program will always return to the succeeding position
-                if self._fast_memory_load_byte(get_real_address_if_arm(self.project.arch, return_site)) is None:
-                    # A relocatable object is mapped one section at a time, so a call that ends an allocated
-                    # section returns into the alignment hole in front of the next one, where nothing is
-                    # mapped and no block can begin.
-                    return_site = None
             else:
                 # For Soot, we return to the next statement, which is not necessarily the next block (as Shimple does
                 # not break blocks at calls)
@@ -4544,7 +4540,7 @@ class CFGFast(ForwardAnalysis[CFGNode, CFGNode, CFGJob, int, object], CFGBase): 
 
         removed_node_keys = set()
 
-        a_key = None  # a is always the most recent node that is still in the graph
+        a_key = None  # a is always the most recent non-removed node
         is_arm = is_arm_arch(self.project.arch)
 
         for i in range(len(sorted_node_keys)):  # pylint:disable=consider-using-enumerate
@@ -4558,14 +4554,6 @@ class CFGFast(ForwardAnalysis[CFGNode, CFGNode, CFGJob, int, object], CFGBase): 
 
             if b_key in removed_node_keys:
                 # skip all removed nodes
-                continue
-
-            # the _scan_block() call at the bottom of this loop drops the blocks whose decoding assumptions it
-            # invalidates, anywhere in the graph, so a key from the snapshot above may no longer name a node
-            if not self.graph.has_node_key(b_key):
-                continue
-            if not self.graph.has_node_key(a_key):
-                a_key = b_key
                 continue
 
             a_addr = block_key_to_addr(a_key)
@@ -4769,34 +4757,6 @@ class CFGFast(ForwardAnalysis[CFGNode, CFGNode, CFGJob, int, object], CFGBase): 
         # if node.addr in self.kb.functions.callgraph:
         #    self.kb.functions.callgraph.remove_node(node.addr)
 
-    def _reached_only_by_call_fallthrough(self, cfg_node: CFGNode) -> bool:
-        """
-        Is this block reachable only as the fall-through of a call to a function we recovered?
-
-        Whatever a compiler leaves after a call it treats as non-returning is not executed: MSVC pads with
-        ``int3``, GCC emits the TOC restore after every PowerPC64 ``bl``, and both are followed by the
-        alignment of the next function. CFGFast recovers that block anyway, because the callee's returning
-        status is usually still unknown when the scan reaches the call site. What is beyond such a block says
-        nothing about whether the function it hangs off was decoded out of data.
-
-        The callee has to be a function with blocks of its own. A stray ``int`` or ``syscall`` in decoded data
-        gets a fall-through edge too, and so does a call whose target is not in the image; a block behind one of
-        those is the tail of a decode rather than the padding after a call.
-        """
-        graph = self.model.graph
-        in_edges = list(graph.in_edges(cfg_node, data=True))
-        if not in_edges:
-            return False
-        for src, _, data in in_edges:
-            if data.get("jumpkind") != "Ijk_FakeRet":
-                return False
-            if not any(
-                edge_data.get("jumpkind") == "Ijk_Call" and self.kb.functions.get_func_block_count(dst.addr)
-                for _, dst, edge_data in graph.out_edges(src, data=True)
-            ):
-                return False
-        return True
-
     def drop_bad_functions(self):
         # remove all functions that are bad, i.e., likely the result of decoding data as code
         # - if a function jumps to data, then it's likely bad
@@ -4845,8 +4805,6 @@ class CFGFast(ForwardAnalysis[CFGNode, CFGNode, CFGJob, int, object], CFGBase): 
                     and cfg_node.addr not in self._undefined_instruction_blocks
                 ):
                     out_degree = self.model.graph.out_degree[cfg_node]
-                    if out_degree < 2 and self._reached_only_by_call_fallthrough(cfg_node):
-                        continue
                     # is it jumping to data?
                     if out_degree == 0:
                         # might be size-limited during CFGNode generation; check the location after the end of the block
@@ -4891,7 +4849,7 @@ class CFGFast(ForwardAnalysis[CFGNode, CFGNode, CFGJob, int, object], CFGBase): 
             if cfg_node is not None:
                 self.model.remove_node_and_graph_node(cfg_node)
             if self.kb.functions.contains_addr(node_addr):
-                del self.kb.functions[node_addr]
+                del self.kb.functions[func_addr]
 
     def _blocks_owned_by_other_functions(self, func_addrs_to_remove: list[int]) -> set[int]:
         """
@@ -6000,14 +5958,7 @@ class CFGFast(ForwardAnalysis[CFGNode, CFGNode, CFGJob, int, object], CFGBase): 
 
                 # the default case
                 valid_ins = False
-                if isinstance(self.project.arch, ArchRISCV64):
-                    # RISC-V stores the length of an instruction in the instruction itself: the lowest two bits of
-                    # the first halfword are 0b11 for a 32-bit instruction and anything else for a 16-bit
-                    # compressed one. Longer encodings are reserved and unallocated.
-                    first_byte = self.project.loader.memory.load(real_addr + irsb_size, 1)[0]
-                    nodecode_size = 4 if first_byte & 0b11 == 0b11 else 2
-                else:
-                    nodecode_size = 1
+                nodecode_size = 1
 
                 # special handling for ud, ud1, and ud2 on x86 and x86-64
                 if self.project.arch.name == "AMD64" and irsb_string[-2:] == b"\x0f\x0b":

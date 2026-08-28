@@ -10,11 +10,8 @@ import unittest
 import networkx
 
 import angr
-from angr.ailment import Manager
-from angr.ailment.expression import ITE, Const, UnaryOp, VirtualVariable, VirtualVariableCategory
-from angr.ailment.statement import Assignment
 from angr.ailment import Block, Manager
-from angr.ailment.expression import Const, Phi, UnaryOp, VirtualVariable, VirtualVariableCategory
+from angr.ailment.expression import ITE, Const, Phi, UnaryOp, VirtualVariable, VirtualVariableCategory
 from angr.ailment.statement import Assignment, Return
 from angr.analyses.decompiler.dephication.rewriting_engine import SimEngineDephiRewriting
 from angr.analyses.decompiler.variable_map import VariableMap
@@ -206,6 +203,7 @@ class TestDephicationRewriting(unittest.TestCase):
         assert out.cond.varid == 6
         assert out.iftrue.value == 0x11
         assert out.iffalse.value == 0xFFFFFFFF
+
     def test_redundant_block_remover_dephication_preserves_occurrence_binding(self):
         proj = angr.Project(os.path.join(test_location, "x86_64", "fauxware"), auto_load_libs=False)
         func = proj.kb.functions.function(addr=proj.entry, create=True)

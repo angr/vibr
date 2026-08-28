@@ -15,11 +15,12 @@ import cle
 import pypcode
 from archinfo import ArchARM, ArchPcode
 from cachetools import LRUCache
+from pyvex.const import vex_int_class
 
 # FIXME: Reusing these errors from pyvex for compatibility. Eventually these
 # should be refactored to use common error classes.
 from pyvex.errors import LiftingException, PyVEXError, SkipStatementsError
-from pyvex.expr import U8, U16, U32, U64, Const, IRExpr
+from pyvex.expr import Const, IRExpr
 
 from angr import sim_options as o
 from angr.block import DisassemblerBlock, DisassemblerInsn
@@ -43,10 +44,6 @@ IRSB_MAX_SIZE = 400
 IRSB_MAX_INST = 99
 MAX_INSTRUCTIONS = 99999
 MAX_BYTES = 5000
-
-# pyvex only has power-of-two integer constants, so an address of a p-code architecture with a narrower width rides
-# in the next larger container. Only the numeric value of irsb.next is ever read back, so the padding is harmless.
-_JUMP_TARGET_CONST_CLASSES = {8: U8, 16: U16, 24: U32, 32: U32, 64: U64}
 
 
 class ExitStatement:
@@ -119,6 +116,7 @@ class IRSB:
     __slots__ = (
         "_direct_next",
         "_disassembly",
+        "_disassembly_source",
         "_exit_statements",
         "_instruction_addresses",
         "_ops",
@@ -141,6 +139,7 @@ class IRSB:
     _size: int | None
     _statements: Iterable  # Note: currently unused
     _disassembly: PcodeDisassemblerBlock | None
+    _disassembly_source: tuple[PcodeBasicBlockLifter, bytes] | None
     addr: int
     arch: archinfo.Arch
     behaviors: BehaviorFactory | None
@@ -217,6 +216,7 @@ class IRSB:
         self.jumpkind = None
         self.next = None
         self._disassembly = None
+        self._disassembly_source = None
 
         if data is not None:
             # This is the slower path (because we need to call _from_py() to copy the content in the returned IRSB to
@@ -293,6 +293,7 @@ class IRSB:
         )
 
         self._disassembly = None
+        self._disassembly_source = None
         return self
 
     def invalidate_direct_next(self) -> None:
@@ -480,7 +481,7 @@ class IRSB:
         # pylint: disable=unused-argument
         self._statements = statements if statements is not None else []
         if isinstance(nxt, int):
-            const_cls = _JUMP_TARGET_CONST_CLASSES[self.arch.bits]
+            const_cls = vex_int_class(self.arch.bits)
             self.next = Const(const_cls(nxt))
         else:
             self.next = nxt
@@ -515,7 +516,15 @@ class IRSB:
         # return self._statements
 
     @property
-    def disassembly(self) -> PcodeDisassemblerBlock:
+    def disassembly(self) -> PcodeDisassemblerBlock | None:
+        if self._disassembly is None and self._disassembly_source is not None:
+            block_lifter, data = self._disassembly_source
+            self._disassembly_source = None
+            try:
+                self._disassembly = block_lifter.disassemble(self.addr, data)
+            except (pypcode.BadDataError, pypcode.UnimplError, pypcode.LowlevelError):
+                # A block that will not decode simply has no disassembly. This property does not raise.
+                l.debug("Failed to disassemble block at %#x", self.addr)
         return self._disassembly
 
 
@@ -713,7 +722,6 @@ def lift(
         opt_level = 0
 
     if block_lifter is None:
-        # the sub-lifts below are part of the same block, so they must all decode with this context
         block_lifter = PcodeBasicBlockLifter(arch)
 
     u_data = data
@@ -823,7 +831,7 @@ def lift(
             # We have no more bytes left. Mark the jumpkind of the IRSB as Ijk_Boring
             if final_irsb.size > 0 and final_irsb.jumpkind == "Ijk_NoDecode":
                 final_irsb.jumpkind = "Ijk_Boring"
-                const_cls = _JUMP_TARGET_CONST_CLASSES[arch.bits]
+                const_cls = vex_int_class(arch.bits)
                 final_irsb.next = Const(const_cls(final_irsb.addr + final_irsb.size))
 
     return final_irsb
@@ -833,9 +841,8 @@ class PcodeBasicBlockLifter:
     """
     Lifts basic blocks to P-code
 
-    Sleigh records context variables per address in the ``pypcode.Context``, so an instance decodes later blocks
-    differently depending on which blocks it decoded before: a branch leaves the delay slot context it sets behind
-    at the following address. An instance must therefore stay with a single binary; see :func:`get_block_lifter`.
+    Sleigh records context variables per address, so an instance must stay with one binary. See
+    :func:`get_block_lifter`.
     """
 
     arch: archinfo.Arch
@@ -858,26 +865,24 @@ class PcodeBasicBlockLifter:
                 raise NotImplementedError
             langid = archinfo_to_lang_map[arch.name]
 
+        self.arch = arch
         self.context = pypcode.Context(langid)
         self.behaviors = BehaviorFactory()
 
-    @staticmethod
-    def _drop_incomplete_instruction(ops: list[PcodeOp], end_addr: int) -> list[PcodeOp]:
+    def disassemble(self, addr: int, data: bytes) -> PcodeDisassemblerBlock:
         """
-        Drop the trailing instruction, if there is one, that Sleigh decoded past the end of the data.
+        Disassemble the instructions of a single block.
 
-        Sleigh reads ahead at every instruction boundary and pypcode's load image zero-fills the part of such
-        a read it cannot satisfy, so a translation may end in an instruction decoded from bytes that were
-        never given to the lifter. A block covers only the bytes it was handed.
-
-        :param ops:         The p-code ops of one translation, in order.
-        :param end_addr:    The address one past the last byte given to Sleigh.
-        :return:            The ops up to and including the last instruction that fits.
+        :param addr: The address the block starts at.
+        :param data: The bytes of the block, exactly as they were lifted.
         """
-        for op_idx, op in enumerate(ops):
-            if op.opcode == pypcode.OpCode.IMARK and op.inputs[-1].offset + op.inputs[-1].size > end_addr:
-                return ops[:op_idx]
-        return ops
+        disasm = self.context.disassemble(data, addr, max_instructions=MAX_INSTRUCTIONS, max_bytes=len(data))
+        return PcodeDisassemblerBlock(
+            addr=addr,
+            insns=[PcodeDisassemblerInsn(ins) for ins in disasm.instructions],
+            thumb=False,
+            arch=self.arch,
+        )
 
     def lift(
         self,
@@ -935,7 +940,7 @@ class PcodeBasicBlockLifter:
                 max_bytes=max_bytes,
                 flags=pypcode.TranslateFlags.BB_TERMINATING,
             )
-            irsb._ops = self._drop_incomplete_instruction(translation.ops, irsb.addr + len(sliced_data))
+            irsb._ops = translation.ops
 
             last_decode_addr = irsb.addr
             last_imark_idx = 0
@@ -971,22 +976,9 @@ class PcodeBasicBlockLifter:
                 elif op.opcode == pypcode.OpCode.RETURN and next_block is None:
                     next_block = (None, "Ijk_Ret")
 
-            # pypcode reads max_bytes=0 as "no limit" rather than as an empty request, so only ask for a
-            # disassembly once something has decoded.
+            # Keep what IRSB.disassembly needs to run Sleigh over the block on demand
             if fallthru_addr > irsb.addr:
-                # FIXME: Do this lazily
-                disasm = self.context.disassemble(
-                    sliced_data,
-                    irsb.addr,
-                    max_instructions=max_inst,
-                    max_bytes=fallthru_addr - irsb.addr,
-                )
-                irsb._disassembly = PcodeDisassemblerBlock(
-                    addr=irsb.addr,
-                    insns=[PcodeDisassemblerInsn(ins) for ins in disasm.instructions],
-                    thumb=False,
-                    arch=irsb.arch,
-                )
+                irsb._disassembly_source = (self, sliced_data[: fallthru_addr - irsb.addr])
 
         except (pypcode.BadDataError, pypcode.UnimplError):
             next_block = (fallthru_addr, "Ijk_NoDecode")
@@ -1000,7 +992,7 @@ class PcodeBasicBlockLifter:
             next_block = (fallthru_addr, "Ijk_Boring")
 
         irsb._size = fallthru_addr - irsb.addr
-        const_cls = _JUMP_TARGET_CONST_CLASSES[irsb.arch.bits]
+        const_cls = vex_int_class(irsb.arch.bits)
         irsb.next = Const(const_cls(next_block[0])) if next_block[0] is not None else None
         irsb.jumpkind = next_block[1]
 
@@ -1009,19 +1001,11 @@ def get_block_lifter(project: Project | None, arch: archinfo.Arch) -> PcodeBasic
     """
     Get the basic block lifter, and therefore the Sleigh context, that `project` decodes `arch` with.
 
-    A project running the p-code engine keeps its lifter on that engine, which the factory keeps per thread as
-    well as per project. Any other project keeps it on itself, in ``Project._pcode_block_lifter``. A block with
-    no project gets a lifter of its own. See :class:`PcodeBasicBlockLifter`.
+    Lifting with no project at all gets a context of its own. See :meth:`angr.project.Project.pcode_block_lifter`.
     """
     if project is None:
         return PcodeBasicBlockLifter(arch)
-    engine = project.factory.default_engine
-    if isinstance(engine, PcodeLifterEngineMixin):
-        return engine.get_block_lifter(arch)
-    block_lifter = project._pcode_block_lifter  # pylint:disable=protected-access
-    if block_lifter is None or block_lifter.arch != arch:
-        block_lifter = project._pcode_block_lifter = PcodeBasicBlockLifter(arch)  # pylint:disable=protected-access
-    return block_lifter
+    return project.pcode_block_lifter(arch)
 
 
 class PcodeLifter(Lifter):
@@ -1038,8 +1022,6 @@ class PcodeLifter(Lifter):
         self.block_lifter = block_lifter
 
     def lift(self) -> None:
-        assert self.data is not None and not isinstance(self.data, str)
-        assert self.bytes_offset is not None
         self.block_lifter.lift(
             self.irsb,
             self.addr,
@@ -1065,7 +1047,7 @@ class PcodeLifterEngineMixin(SimEngine):
         self,
         project=None,
         use_cache: bool | None = None,
-        cache_size: int = 50000,
+        cache_size: int = 5000,
         default_opt_level: int = 1,
         selfmodifying_code: bool | None = None,
         single_step: bool = False,
@@ -1092,25 +1074,11 @@ class PcodeLifterEngineMixin(SimEngine):
             else:
                 self.selfmodifying_code = False
 
-        # basic block lifter
-        self._block_lifter: PcodeBasicBlockLifter | None = None
-
         # block cache
         self._block_cache = None
         self._block_cache_hits = 0
         self._block_cache_misses = 0
         self._initialize_block_cache()
-
-    def get_block_lifter(self, arch: archinfo.Arch) -> PcodeBasicBlockLifter:
-        """
-        Get the basic block lifter this engine decodes `arch` with, creating it on first use.
-
-        The factory keeps one engine per project and per thread, so an engine's lifter never decodes blocks of
-        more than one binary. See :class:`PcodeBasicBlockLifter`.
-        """
-        if self._block_lifter is None or self._block_lifter.arch != arch:
-            self._block_lifter = PcodeBasicBlockLifter(arch)
-        return self._block_lifter
 
     def _initialize_block_cache(self) -> None:
         self._block_cache = LRUCache(maxsize=self._cache_size)
@@ -1356,7 +1324,7 @@ class PcodeLifterEngineMixin(SimEngine):
                     strict_block_end=strict_block_end,
                     skip_stmts=skip_stmts,
                     collect_data_refs=collect_data_refs,
-                    block_lifter=self.get_block_lifter(arch),
+                    block_lifter=get_block_lifter(self.project, arch),
                 )
 
                 if subphase == 0 and irsb.statements is not None:
@@ -1506,9 +1474,6 @@ class PcodeLifterEngineMixin(SimEngine):
         self._single_step = s["_single_step"]
         self._cache_size = s["_cache_size"]
         self.default_strict_block_end = s["default_strict_block_end"]
-
-        # Sleigh contexts do not survive pickling; rebuild on demand
-        self._block_lifter = None
 
         # rebuild block cache
         self._initialize_block_cache()

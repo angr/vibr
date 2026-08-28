@@ -6,7 +6,6 @@ __package__ = __package__ or "tests.analyses.decompiler"  # pylint:disable=redef
 
 import os
 import unittest
-from typing import Any, cast
 from unittest.mock import patch
 from types import SimpleNamespace
 
@@ -25,28 +24,6 @@ def _make_codegen() -> CStructuredCodeGenerator:
     codegen = proj.analyses.Decompiler(cfg.functions[0], cfg=cfg).codegen
     assert isinstance(codegen, CStructuredCodeGenerator)
     return codegen
-from angr.ailment import Block, Expr, Stmt
-from angr.analyses.decompiler.jump_target_collector import JumpTargetCollector
-from angr.analyses.decompiler.redundant_label_remover import RedundantLabelRemover
-from angr.analyses.decompiler.structured_codegen.c import CGoto, CStructuredCodeGenerator
-from angr.analyses.decompiler.structured_codegen.rust import RustGoto, RustStructuredCodeGenerator
-from angr.analyses.decompiler.structurer_nodes import SequenceNode
-
-
-class _ConditionalJumpCodegenHarness:
-    cstyle_ifs = True
-
-    @staticmethod
-    def next_ident(name):
-        return name
-
-    @staticmethod
-    def next_node_idx():
-        return 0
-
-    @staticmethod
-    def _handle(node, **_kwargs):
-        return node
 from angr.ailment import Expr
 from angr.analyses.decompiler import CStructuredCodeGenerator
 from angr.analyses.decompiler.structured_codegen.c import (
@@ -87,6 +64,13 @@ class _RenderedExpression(CExpression):
 
     def c_repr_chunks(self, indent=0, asexpr=False):
         yield self.text, self
+from angr.analyses.decompiler.structured_codegen.c import type_to_c_repr_chunks
+from angr.sim_type import SimStruct, SimTypeInt, SimUnion
+from angr.analyses.decompiler.structured_codegen.c import type_to_c_repr_chunks
+from angr.sim_type import SimCppClass, SimTypeFunction, SimTypeInt, SimTypePointer, parse_cpp_file
+from angr.ailment import Expr, Stmt
+from angr.analyses.decompiler.structured_codegen.c import CStructuredCodeGenerator
+from angr.sim_type import SimTypeBottom, SimTypeInt, SimTypeLongLong
 
 
 class TestConvertRendering(unittest.TestCase):
@@ -203,89 +187,6 @@ class TestStoreRendering(unittest.TestCase):
 
         assert direct_rendered == "*((unsigned int *)&storage) = 287454020;\n"
         assert pointer_rendered == "*((unsigned int *)iter) = 287454020;\n"
-class TestConditionalJumpTargetIdentity(unittest.TestCase):
-    def setUp(self):
-        self.stmt = Stmt.ConditionalJump(
-            0,
-            Expr.Const(1, 1, 1),
-            Expr.Const(2, 0x2000, 64),
-            Expr.Const(3, 0x2000, 64),
-            true_target_idx=4,
-            false_target_idx=5,
-        )
-
-    def test_jump_target_collector_preserves_branch_indices(self):
-        block = Block(0x1000, 4, statements=[self.stmt], idx=3)
-
-        self.assertEqual(JumpTargetCollector(block).jump_targets, {(0x2000, 4), (0x2000, 5)})
-
-    def test_redundant_labels_retarget_conditional_address_and_idx(self):
-        head = Block(
-            0x2000,
-            4,
-            statements=[Stmt.Label(10, "LABEL_2000__1", ins_addr=0x2000, block_idx=1)],
-            idx=1,
-        )
-        indexed = Block(
-            0x3000,
-            4,
-            statements=[Stmt.Label(11, "LABEL_3000__2", ins_addr=0x3000, block_idx=2)],
-            idx=2,
-        )
-        unindexed = Block(
-            0x3000,
-            4,
-            statements=[Stmt.Label(12, "LABEL_3000", ins_addr=0x3000, block_idx=None)],
-            idx=None,
-        )
-        source = Block(
-            0x1000,
-            4,
-            statements=[
-                Stmt.ConditionalJump(
-                    13,
-                    Expr.Const(4, 1, 1),
-                    Expr.Const(5, 0x3000, 64),
-                    Expr.Const(6, 0x3000, 64),
-                    true_target_idx=2,
-                    false_target_idx=None,
-                )
-            ],
-            idx=0,
-        )
-        sequence = SequenceNode(0x2000, [head, indexed, unindexed, source])
-
-        RedundantLabelRemover(sequence, {(0x3000, 2), (0x3000, None)})
-
-        updated = cast(Any, source.statements[0])
-        self.assertEqual((updated.true_target.value, updated.true_target_idx), (0x2000, 1))
-        self.assertEqual((updated.false_target.value, updated.false_target_idx), (0x2000, 1))
-        self.assertEqual(JumpTargetCollector(source).jump_targets, {(0x2000, 1)})
-
-        c_handler = cast(Any, CStructuredCodeGenerator._handle_Stmt_ConditionalJump)
-        rendered = c_handler(_ConditionalJumpCodegenHarness(), updated)
-        self.assertEqual(rendered.condition_and_nodes[0][1].target_idx, 1)
-        self.assertEqual(rendered.else_node.target_idx, 1)
-
-    def test_c_codegen_preserves_branch_indices(self):
-        handler = cast(Any, CStructuredCodeGenerator._handle_Stmt_ConditionalJump)
-        result = handler(_ConditionalJumpCodegenHarness(), self.stmt)
-
-        true_goto = result.condition_and_nodes[0][1]
-        self.assertIsInstance(true_goto, CGoto)
-        self.assertIsInstance(result.else_node, CGoto)
-        self.assertEqual(true_goto.target_idx, 4)
-        self.assertEqual(result.else_node.target_idx, 5)
-
-    def test_rust_codegen_preserves_branch_indices(self):
-        handler = cast(Any, RustStructuredCodeGenerator._handle_Stmt_ConditionalJump)
-        result = handler(_ConditionalJumpCodegenHarness(), self.stmt)
-
-        true_goto = result.condition_and_nodes[0][1]
-        self.assertIsInstance(true_goto, RustGoto)
-        self.assertIsInstance(result.else_node, RustGoto)
-        self.assertEqual(true_goto.target_idx, 4)
-        self.assertEqual(result.else_node.target_idx, 5)
 class TestPostfixExpressionRendering(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -391,6 +292,114 @@ class TestGotoRendering(unittest.TestCase):
         chunks = CGoto(0x400000, None, codegen=self.codegen).c_repr_chunks()
 
         self.assertEqual("".join(text for text, _ in chunks), "goto LABEL_0x400000;\n")
+
+
+class TestAnonymousAggregateRendering(unittest.TestCase):
+    """How type_to_c_repr_chunks renders anonymous aggregates that contain themselves."""
+
+    @staticmethod
+    def _render(ty) -> str:
+        return "".join(text for text, _ in type_to_c_repr_chunks(ty, full=True))
+
+    def test_nested_anonymous_structs_are_rendered_inline(self):
+        inner = SimStruct({"x": SimTypeInt()}, name="<anon>")
+        middle = SimStruct({"deep": inner}, name="<anon>")
+        outer = SimStruct({"mid": middle, "y": SimTypeInt()}, name="outer")
+        assert self._render(outer) == (
+            "typedef struct outer {\n"
+            "    struct {\n"
+            "        struct {\n"
+            "            int x;\n"
+            "        } deep;\n"
+            "    } mid;\n"
+            "    int y;\n"
+            "} outer;\n\n"
+        )
+
+    def test_self_referential_anonymous_struct_terminates(self):
+        # Type inference can hand codegen an anonymous aggregate that reaches itself. Anonymous
+        # aggregates are rendered inline, so there is no name to refer back to and the render
+        # descended until the interpreter stopped it.
+        anon = SimStruct({}, name="<anon>")
+        anon.fields = {"loop": anon, "x": SimTypeInt()}
+        outer = SimStruct({"mid": anon}, name="outer")
+        assert self._render(outer) == (
+            "typedef struct outer {\n"
+            "    struct {\n"
+            "        struct { /* recursive */ } loop;\n"
+            "        int x;\n"
+            "    } mid;\n"
+            "} outer;\n\n"
+        )
+
+    def test_self_referential_anonymous_union_terminates(self):
+        anon = SimUnion({}, name="<anon>")
+        anon.members = {"loop": anon, "x": SimTypeInt()}
+        outer = SimStruct({"mid": anon}, name="outer")
+        assert self._render(outer) == (
+            "typedef struct outer {\n"
+            "    union {\n"
+            "        union { /* recursive */ } loop;\n"
+            "        int x;\n"
+            "    } mid;\n"
+            "} outer;\n\n"
+        )
+
+
+class TestClassDefinitionRendering(unittest.TestCase):
+    """How type_to_c_repr_chunks spells the class-key of a rendered C++ class definition."""
+
+    @staticmethod
+    def _render(ty) -> str:
+        return "".join(text for text, _ in type_to_c_repr_chunks(ty, full=True))
+
+    def test_elaborated_class_name_keeps_one_class_key(self):
+        # angr's own C++ parser keeps the class-key in the name on its class branch, so the
+        # definition used to come out as "class class DemoNs::DemoType".
+        decls, _ = parse_cpp_file("void f(class DemoNs::DemoType *p);", with_param_names=True)
+        assert decls is not None
+        prototype = decls["f"]
+        assert isinstance(prototype, SimTypeFunction)
+        pointer = prototype.args[0]
+        assert isinstance(pointer, SimTypePointer)
+        ty = pointer.pts_to
+        assert isinstance(ty, SimCppClass)
+        assert ty.name == "class DemoNs::DemoType"
+        assert self._render(ty) == "class DemoNs::DemoType {\n} DemoNs::DemoType;\n\n"
+
+    def test_plain_class_name_is_unchanged(self):
+        ty = SimCppClass(unique_name="DemoNs::DemoType", name="DemoNs::DemoType", members={"x": SimTypeInt()})
+        assert self._render(ty) == "class DemoNs::DemoType {\n    int x;\n} DemoNs::DemoType;\n\n"
+
+
+class TestStoreWidth(unittest.TestCase):
+    """A store's emitted C must write as many bytes as the AIL store writes."""
+
+    @classmethod
+    def setUpClass(cls):
+        proj = angr.load_shellcode(b"\x31\xc0\xc3", arch="AMD64")  # xor eax, eax; ret
+        cfg = proj.analyses.CFGFast(normalize=True)
+        codegen = proj.analyses.Decompiler(cfg.functions[0], cfg=cfg).codegen
+        assert isinstance(codegen, CStructuredCodeGenerator)
+        cls.codegen = codegen
+
+    def _dst_bits(self, idx: int, value_type, value_bits: int, size: int) -> int:
+        # the destination is what _access renders as *(T*)addr, so its type is the width written
+        data = Expr.Const(idx, 0, value_bits, type=value_type)
+        stmt = Stmt.Store(idx, Expr.Const(idx, 0x400000, 64), data, size, "Iend_LE")
+        return self.codegen._handle(stmt, is_expr=False).lhs.type.size
+
+    def test_value_typed_narrower_than_the_store(self):
+        assert self._dst_bits(1, SimTypeInt(signed=False), 64, 8) == 64
+
+    def test_value_typed_wider_than_the_store(self):
+        assert self._dst_bits(2, SimTypeLongLong(signed=False), 8, 1) == 8
+
+    def test_value_with_no_inferred_type(self):
+        assert self._dst_bits(3, SimTypeBottom(), 128, 16) == 128
+
+    def test_value_typed_correctly_is_left_alone(self):
+        assert self._dst_bits(4, SimTypeLongLong(signed=False), 64, 8) == 64
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Iterable, MutableMapping
+from collections.abc import Callable, Collection, Iterable, MutableMapping
 from functools import partial
 from itertools import chain
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -51,6 +51,8 @@ class RewritingAnalysis:
         def_to_udef: MutableMapping[Def, UDef],
         extern_defs: set[UDef],
         incomplete_defs: set[Def],
+        provisional_call_return_defs: Collection[Def] = (),
+        used_provisional_call_return_defs: Collection[Def] = (),
         vvar_id_start: int = 0,
         stackvars: bool = False,
         fail_fast: bool = False,
@@ -74,6 +76,8 @@ class RewritingAnalysis:
             ail_manager=ail_manager,
             vvar_id_start=vvar_id_start,
             def_to_udef=def_to_udef,
+            provisional_call_return_defs=provisional_call_return_defs,
+            used_provisional_call_return_defs=used_provisional_call_return_defs,
             stackvars=stackvars,
             fail_fast=self._fail_fast,
         )
@@ -227,7 +231,7 @@ class RewritingAnalysis:
     def _stack_predicate(self, node_: Block, *, stack_offset: int) -> tuple[bool, Any]:
         out_state: RewritingState = (
             self.head_controlled_loop_outstates[(node_.addr, node_.idx)]
-            if is_head_controlled_loop_block(node_) and (node_.addr, node_.idx) in self.head_controlled_loop_outstates
+            if is_head_controlled_loop_block(node_)
             else self.out_states[(node_.addr, node_.idx)]
         )
         if stack_offset in out_state.stackvars:

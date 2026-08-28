@@ -2079,11 +2079,18 @@ class RustUnaryOp(RustExpression):
         if handler is not None:
             yield from handler()
         else:
-            yield f"UnaryOp {self.op}", self
+            yield from self._c_repr_chunks_opfirst(self.op)
 
     #
     # Handlers
     #
+
+    def _c_repr_chunks_opfirst(self, op):
+        yield op, self
+        paren = RustClosingObject("(")
+        yield "(", paren
+        yield from RustExpression._try_c_repr_chunks(self.operand)
+        yield ")", paren
 
     def _c_repr_chunks_not(self):
         paren = RustClosingObject("(")
@@ -2256,7 +2263,7 @@ class RustBinaryOp(RustExpression):
         if handler is not None:
             yield from handler()
         else:
-            yield f"BinaryOp {self.op}", self
+            yield from self._c_repr_chunks_opfirst(self.op)
 
     def _has_const_null_rhs(self) -> bool:
         return isinstance(self.rhs, RustConstant) and self.rhs.value == 0
@@ -2264,6 +2271,15 @@ class RustBinaryOp(RustExpression):
     #
     # Handlers
     #
+
+    def _c_repr_chunks_opfirst(self, op):
+        yield op, self
+        paren = RustClosingObject("(")
+        yield "(", paren
+        yield from RustExpression._try_c_repr_chunks(self.lhs)
+        yield ", ", None
+        yield from RustExpression._try_c_repr_chunks(self.rhs)
+        yield ")", paren
 
     def _c_repr_chunks(self, op):
         skip_op_and_rhs = False
@@ -3852,13 +3868,13 @@ class RustStructuredCodeGenerator(BaseStructuredCodeGenerator, Analysis):
         else_node = (
             None
             if stmt.false_target is None
-            else RustGoto(self._handle(stmt.false_target), stmt.false_target_idx, tags=stmt.tags, codegen=self)
+            else RustGoto(self._handle(stmt.false_target), None, tags=stmt.tags, codegen=self)
         )
         return RustIfElse(
             [
                 (
                     self._handle(stmt.condition),
-                    RustGoto(self._handle(stmt.true_target), stmt.true_target_idx, tags=stmt.tags, codegen=self),
+                    RustGoto(self._handle(stmt.true_target), None, tags=stmt.tags, codegen=self),
                 )
             ],
             else_node=else_node,

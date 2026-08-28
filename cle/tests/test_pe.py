@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 from __future__ import annotations
 
-import io
 import os
 import shutil
-import sys
 import struct
+import sys
 import tempfile
 import unittest
 
@@ -16,47 +15,6 @@ from cle.backends.pe.symbolserver import PDBInfo
 
 TEST_BASE = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.path.join("..", "..", "binaries"))
 requires_pyxdia = unittest.skipIf(sys.platform == "emscripten", "pyxdia is unavailable in Pyodide")
-
-
-def _num_rva_and_sizes_offset(data):
-    """Return the offset of NumberOfRvaAndSizes, the last field of the PE optional header."""
-    optional_header = struct.unpack_from("<I", data, 0x3C)[0] + 4 + 20
-    magic = struct.unpack_from("<H", data, optional_header)[0]
-    return optional_header + (108 if magic == 0x20B else 92)
-
-
-def _data_directory_count(data):
-    """Return the number of data directories the image *data* declares."""
-    return struct.unpack_from("<I", data, _num_rva_and_sizes_offset(data))[0]
-
-
-def _shrink_data_directory(image, count):
-    """
-    Return *image* declaring only *count* data directories instead of the usual 16.
-
-    The section table moves up to stay adjacent to the shortened optional header; nothing after the headers
-    changes, so the two images map identically.
-    """
-    data = bytearray(image)
-
-    file_header = struct.unpack_from("<I", data, 0x3C)[0] + 4
-    num_sections = struct.unpack_from("<H", data, file_header + 2)[0]
-    size_of_optional_header = struct.unpack_from("<H", data, file_header + 16)[0]
-    optional_header = file_header + 20
-    count_offset = _num_rva_and_sizes_offset(data)
-    directories = count_offset + 4
-
-    section_table = optional_header + size_of_optional_header
-    section_table_end = section_table + num_sections * 40
-    sections = bytes(data[section_table:section_table_end])
-
-    struct.pack_into("<I", data, count_offset, count)
-    struct.pack_into("<H", data, file_header + 16, directories + count * 8 - optional_header)
-    new_section_table = directories + count * 8
-    data[new_section_table:section_table_end] = b"\x00" * (section_table_end - new_section_table)
-    data[new_section_table : new_section_table + len(sections)] = sections
-
-    return bytes(data)
 
 
 # pylint: disable=no-self-use
@@ -344,21 +302,16 @@ class TestPEBackend(unittest.TestCase):
         assert ld.all_objects[1].min_addr == 0x500000
 
     def test_short_data_directory(self):
-        # NumberOfRvaAndSizes may be smaller than the 16 directories the format defines - EFI stub images
-        # commonly declare 6 - and the trailing directories are then simply absent. printenv.exe uses only
-        # directories 1 and 2, so shrinking it to 6 drops nothing.
-        with open(os.path.join(TEST_BASE, "tests", "i386", "windows", "printenv.exe"), "rb") as f:
-            image = f.read()
-        assert _data_directory_count(image) == 16
-
-        short = _shrink_data_directory(image, 6)
-        assert _data_directory_count(short) == 6
-
-        ld = cle.Loader(io.BytesIO(short), auto_load_libs=False)
+        # NumberOfRvaAndSizes may be smaller than the 16 directories the format defines, and the
+        # trailing directories are then simply absent. EFI stub images commonly declare 6, which is
+        # what this one does; indexing the IAT (12) or the .NET descriptor (14) has to cope.
+        efi = os.path.join(TEST_BASE, "tests", "x86_64", "efi_short_data_directory.efi")
+        ld = cle.Loader(efi, auto_load_libs=False)
 
         assert isinstance(ld.main_object, cle.PE)
-        assert [sec.name for sec in ld.main_object.sections] == [".text", ".data", ".bss", ".idata", ".rsrc"]
-        assert sorted(ld.main_object.deps) == ["kernel32.dll", "libintl3.dll", "msvcp60.dll", "msvcrt.dll"]
+        assert [sec.name for sec in ld.main_object.sections] == [".text", ".data"]
+        assert ld.main_object.entry == 0x1000
+        assert not ld.main_object.deps
         # The .NET descriptor is directory 14, past the end of this image's directories.
         assert not ld.main_object.is_dotnet
 
@@ -394,6 +347,20 @@ class TestPEBackend(unittest.TestCase):
         exe = os.path.join(TEST_BASE, "tests", "i386", "simple_windows.exe")
         ld = cle.Loader(exe, auto_load_libs=False)
         obj = ld.main_object
+
+        mapped_size = obj.max_addr - obj.min_addr + 1
+        assert len(ld.memory.load(obj.min_addr, mapped_size)) == mapped_size
+
+    def test_mapped_image_covers_uninitialized_tail(self):
+        exe = os.path.join(TEST_BASE, "tests", "i386", "windows", "rain32.upx")
+        ld = cle.Loader(exe, auto_load_libs=False)
+        obj = ld.main_object
+
+        rsrc = ld.main_object.sections_map[".rsrc"]
+        assert rsrc.memsize == 0x1000
+        assert rsrc.filesize == 0x600
+        tail = rsrc.memsize - rsrc.filesize
+        assert ld.memory.load(rsrc.vaddr + rsrc.filesize, tail) == bytes(tail)
 
         mapped_size = obj.max_addr - obj.min_addr + 1
         assert len(ld.memory.load(obj.min_addr, mapped_size)) == mapped_size

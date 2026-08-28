@@ -1,3 +1,4 @@
+import contextlib
 import copy
 import logging
 import platform as _platform
@@ -324,17 +325,12 @@ class Arch:
         return f"<Arch {self.name} ({self.memory_endness[-2:]})>"
 
     def __hash__(self):
-        return hash((self.name, self.bits, self.memory_endness, self.instruction_endness))
+        return hash((self.name, self.bits, self.memory_endness))
 
     def __eq__(self, other):
         if not isinstance(other, Arch):
             return False
-        return (
-            self.name == other.name
-            and self.bits == other.bits
-            and self.memory_endness == other.memory_endness
-            and self.instruction_endness == other.instruction_endness
-        )
+        return self.name == other.name and self.bits == other.bits and self.memory_endness == other.memory_endness
 
     def __ne__(self, other):
         return not self == other
@@ -870,12 +866,23 @@ class ArchNotFound(Exception):
     pass
 
 
-def arch_from_id(ident: str, endness=Endness.ANY, bits="") -> Arch:
+def arch_from_id(ident: str, endness: str = Endness.ANY, bits: int | str = "") -> Arch:
     """
     Take our best guess at the arch referred to by the given identifier, and return an instance of its class.
 
     You may optionally provide the ``endness`` and ``bits`` parameters (strings) to help this function out.
+
+    A full sleigh language id, such as ``pa-risc:BE:32:default``, returns the ArchPcode for that language. It
+    carries its own endness and width, so the ``endness`` and ``bits`` hints do not apply to it.
     """
+    if ":" in ident:
+        # A language id names one language, so it answers before arch_id_map, whose regexes would otherwise
+        # claim ARM:LE:32:v7 for ArchARMEL. The import is delayed because arch_pcode imports this module.
+        from .arch_pcode import ArchPcode  # pylint: disable=import-outside-toplevel
+
+        with contextlib.suppress(ArchError):
+            return ArchPcode(ident)
+
     if bits == 64 or (isinstance(bits, str) and "64" in bits):
         bits = 64
     elif isinstance(bits, str) and "32" in bits:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import sys
 import struct
+import sys
 import timeit
 import unittest
 

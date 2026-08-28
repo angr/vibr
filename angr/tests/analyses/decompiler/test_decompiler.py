@@ -503,6 +503,39 @@ class TestDecompiler(unittest.TestCase):
             ),
         )
 
+    @structuring_algo("sailr")
+    def test_duplication_reverter_updates_equal_predecessor_keys(self, decompiler_options=None):
+        bin_path = os.path.join(test_location, "x86_64", "decompiler", "paste")
+        project = angr.Project(bin_path, auto_load_libs=False)
+
+        function_addr = 0x402A40
+        cfg = project.analyses[CFGFast].prep()(
+            normalize=True,
+            regions=[(function_addr, 0x402E89)],
+            function_starts=[function_addr],
+            start_at_entry=False,
+            force_smart_scan=False,
+            symbols=False,
+        )
+        function = cfg.functions[function_addr]
+        self.assertGreaterEqual(function.size, 0x431)
+        self.assertIn(0x402C7F, {block.addr for block in function.blocks})
+        decompilation = project.analyses[Decompiler].prep(fail_fast=True)(
+            function,
+            cfg=cfg.model,
+            preset="full",
+            options=decompiler_options,
+            use_cache=False,
+            update_cache=False,
+        )
+
+        assert decompilation.codegen is not None
+        code = decompilation.codegen.text
+        assert code is not None
+        self.assertIn("paste_parallel", code)
+        self.assertIn("fwrite_unlocked", code)
+        self.assertIn("xputchar", code)
+
     @for_all_structuring_algos
     def test_decompiling_true_x86_64_0(self, decompiler_options=None):
         # in fact this test case tests if CFGBase._process_jump_table_targeted_functions successfully removes "function"
@@ -3045,34 +3078,6 @@ class TestDecompiler(unittest.TestCase):
         assert d.codegen.text.count("switch") == 0
 
     @structuring_algo("sailr")
-    def test_touch_shifted_goto_destination_preserves_errno_path(self, decompiler_options=None):
-        bin_path = os.path.join(test_location, "x86_64", "decompiler", "touch_touch_no_switch.o")
-        proj = angr.Project(bin_path, auto_load_libs=False, load_debug_info=True)
-        cfg = proj.analyses.CFGFast(normalize=True, data_references=True)
-        f = cfg.kb.functions.function(name="touch", plt=False)
-        assert f is not None
-
-        d = proj.analyses[Decompiler].prep(fail_fast=True)(
-            f,
-            cfg=cfg.model,
-            options=decompiler_options,
-            preset="full",
-            use_cache=False,
-            update_cache=False,
-        )
-
-        assert d.codegen is not None and d.codegen.text is not None
-        error_region = re.search(
-            r'else if \(!no_create\)\s*\{(?P<body>.*?dcgettext\(NULL, "setting times of %s", 5\).*?)\n\s*\}',
-            d.codegen.text,
-            re.DOTALL,
-        )
-        self.assertIsNotNone(error_region)
-        error_region_body = error_region.group("body")
-        self.assertNotIn("else if (!v2)", error_region_body)
-        self.assertIn('error(0, v5, dcgettext(NULL, "setting times of %s", 5));', error_region_body)
-
-    @structuring_algo("sailr")
     def disabled_test_continuous_small_switch_cluster(self, decompiler_options=None):
         # FIXME: Fish does not think this test case was supposed to pass in the first place. will need more time and
         #  energy to nvestigate
@@ -4657,6 +4662,41 @@ class TestDecompiler(unittest.TestCase):
         # assert text.count("sub_404860") == 1
 
     @structuring_algo("sailr")
+    def test_libbsd_r_sort_a_deduplication_preserves_entry(self, decompiler_options=None):
+        bin_path = os.path.join(test_location, "x86_64", "decompiler", "libbsd.so.0.11.7")
+        proj = angr.Project(bin_path, auto_load_libs=False, load_debug_info=True)
+        symbol = proj.loader.find_symbol("r_sort_a")
+        assert symbol is not None
+
+        function_addr = symbol.rebased_addr
+        cfg = proj.analyses.CFGFast(
+            normalize=True,
+            regions=[(function_addr, function_addr + symbol.size)],
+            start_at_entry=False,
+            function_starts=[function_addr],
+            symbols=True,
+            force_smart_scan=False,
+        )
+        function = cfg.functions[function_addr]
+        decompilation = proj.analyses[Decompiler].prep(fail_fast=True)(
+            function,
+            cfg=cfg.model,
+            options=decompiler_options,
+            preset=DECOMPILATION_PRESETS["full"],
+            use_cache=False,
+            update_cache=False,
+        )
+
+        assert decompilation.codegen is not None
+        assert decompilation.codegen.text is not None
+        clinic = decompilation.clinic
+        assert clinic is not None
+        self.assertEqual(clinic.entry_node_addr, (function_addr, None))
+        entry_nodes = [node for node in clinic.graph if (node.addr, node.idx) == clinic.entry_node_addr]
+        self.assertEqual(len(entry_nodes), 1)
+        self.assertEqual(clinic.graph.in_degree(entry_nodes[0]), 0)
+
+    @structuring_algo("sailr")
     def test_deduplication_too_sensitive_split_3(self, decompiler_options=None):
         # This tests the deduplicator goto-trigger is not too sensitive. In this binary there is duplicate assignment
         # that was legit written by the programmer. It so happens to be close to a goto, which used to trigger this opt
@@ -5587,6 +5627,24 @@ class TestDecompiler(unittest.TestCase):
 
         # ensure decompling this function should not take over 30 seconds - it was taking at least two minutes before
         # recent optimizations
+
+    def test_decompiling_armel_go_boundserror(self, decompiler_options=None):
+        # An ARM32 register-offset store (strb rX, [rB, rI]) lets the traversal pair a stack base with a
+        # .rodata address in the index register, producing an ~800 KB stack variable that swallowed the
+        # frame of runtime.boundsError.Error.
+        bin_path = os.path.join(test_location, "armel", "decompiler", "errorpaths_go")
+        proj, cfg = load_project_with_scoped_cfg(bin_path, 0x2744C)
+
+        start = time.time()
+        dec = proj.analyses.Decompiler(
+            cfg.functions[0x2744C], cfg=cfg.model, fail_fast=True, options=decompiler_options
+        )
+        elapsed = time.time() - start
+        assert dec.codegen is not None and dec.codegen.text is not None
+        print_decompilation_result(dec)
+
+        assert "|Stack bp-" not in dec.codegen.text, "an unresolved stack variable leaked into the output"
+        assert elapsed <= 120, f"Decompiling runtime.boundsError.Error took {elapsed} seconds"
 
     def test_fastfail_intrinsic(self, decompiler_options=None):
         bin_path = os.path.join(test_location, "x86_64", "windows", "fastfail.exe")

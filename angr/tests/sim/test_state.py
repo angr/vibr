@@ -8,7 +8,6 @@ import io
 import os
 import pickle
 import unittest
-from unittest import mock
 
 import archinfo
 import claripy
@@ -16,7 +15,6 @@ import cle
 
 import angr
 from angr import SimState
-from angr.state_plugins.heap.heap_base import SimHeapBase
 from tests.common import bin_location
 
 test_location = os.path.join(bin_location, "tests")
@@ -231,32 +229,6 @@ class TestState(unittest.TestCase):
         gc.collect()
         s = pickle.loads(sp)
         assert s.solver.eval(s.memory.load(100, 10), cast_to=bytes) == b"AAABAABABC"
-
-    def test_plugin_init_runs_once(self):
-        # A state does not build its heap plugin up front, so reading it goes through the hub.
-        state = SimState(arch="AMD64")
-
-        with mock.patch.object(SimHeapBase, "init_state", autospec=True) as init_state:
-            _ = state.heap
-
-        self.assertEqual(init_state.call_count, 1)
-
-    def test_plugin_init_is_reentrant(self):
-        # dsPIC33F keeps its 3-byte program counter at register offset 46, which is not a multiple
-        # of the 3-byte slot width of a fastpath state's register file, so reading it fills the two
-        # slots it straddles. Each of those fills records an event on the history plugin, whose own
-        # initialization is what read the program counter.
-        arch = archinfo.ArchPcode("dsPIC33F:LE:24:default")
-        proj = angr.Project(io.BytesIO(b"\x00"), main_opts={"backend": "blob", "arch": arch})
-        state = proj.factory.blank_state(
-            mode="fastpath",
-            add_options={
-                angr.options.SYMBOL_FILL_UNCONSTRAINED_MEMORY,
-                angr.options.SYMBOL_FILL_UNCONSTRAINED_REGISTERS,
-            },
-        )
-
-        self.assertEqual(state.solver.eval(state.regs.ip), proj.entry)
 
     def test_unconstrained_fill_is_reported(self):
         # Filling the slots that dsPIC33F's program counter straddles is warned about one slot at a

@@ -51,6 +51,7 @@ from angr.calling_conventions import (
     SimRegArg,
     SimStackArg,
     SimStructArg,
+    is_stack_probe,
 )
 from angr.code_location import ExternalCodeLocation
 from angr.codenode import BlockNode, FuncNode
@@ -105,6 +106,7 @@ from angr.utils.types import dereference_simtype_by_lib
 
 from .ail_simplifier import AILSimplifier
 from .ailgraph_walker import AILGraphWalker, RemoveNodeNotice
+from .c_prototype import c_function_type_with_array_return_decay
 from .notes import DecompilationNote
 from .optimization_passes import (
     CONDENSING_OPTS,
@@ -1909,6 +1911,15 @@ class Clinic(Analysis, Serializable):
             if not self.kb.functions.contains_addr(target):
                 continue
             target_func = self.kb.functions.get_by_addr(target)
+            if is_stack_probe(target_func) and last_stmt.fp_ret_expr is not None:
+                block.statements[-1] = ailment.Stmt.SideEffectStatement(
+                    last_stmt.idx,
+                    last_stmt.expr,
+                    ret_expr=last_stmt.ret_expr,
+                    fp_ret_expr=None,
+                    **last_stmt.tags,
+                )
+                continue
             if target_func.name == "_security_check_cookie" and self.project.arch.name in {"X86", "AMD64"}:
                 arg = SimRegArg("ecx", 32) if self.project.arch.bits == 32 else SimRegArg("rcx", 64)
                 arg_offset, arg_bits = self.project.arch.registers[arg.reg_name]
@@ -1993,11 +2004,13 @@ class Clinic(Analysis, Serializable):
                 prototype_libname = func.prototype_libname
                 if prototype_libname is not None:
                     prototype = dereference_simtype_by_lib(prototype, prototype_libname)
+            assert prototype is None or isinstance(prototype, SimTypeFunction)
+            if prototype is not None and self.flavor == "pseudocode":
+                prototype = c_function_type_with_array_return_decay(prototype, self.project.arch)
 
             if cc is None:
                 l.warning("Call site %#x (callee %s) has an unknown calling convention.", block.addr, repr(func))
 
-            assert prototype is None or isinstance(prototype, SimTypeFunction)
             new_last_stmt = last_stmt.copy()
             self.variable_map.set_calling_convention(new_last_stmt.expr, cc)
             self.variable_map.set_prototype(new_last_stmt.expr, prototype)
@@ -2477,6 +2490,9 @@ class Clinic(Analysis, Serializable):
                 if self.function.prototype_libname
                 else self.function.prototype
             )
+            assert isinstance(proto, SimTypeFunction)
+            if self.flavor == "pseudocode":
+                proto = c_function_type_with_array_return_decay(proto, self.project.arch)
             args: list[SimFunctionArgument] = self.function.calling_convention.arg_locs(proto)
             if self._flatten_args:
                 new_args = []
@@ -2575,6 +2591,7 @@ class Clinic(Analysis, Serializable):
                 reaching_definitions=rd,
                 stack_pointer_tracker=stack_pointer_tracker,
                 ail_manager=self._ail_manager,
+                flavor=self.flavor,
             )
             stackarg_offset_manager.merge(csm.stackarg_offset_manager)
             if csm.removed_vvar_ids:
@@ -2608,7 +2625,10 @@ class Clinic(Analysis, Serializable):
             # unknown calling convention. cannot do much about return expressions.
             return ail_graph
 
-        ReturnMaker(self._ail_manager, self.project.arch, self.function, ail_graph)
+        prototype = self.function.prototype
+        if prototype is not None and self.flavor == "pseudocode":
+            prototype = c_function_type_with_array_return_decay(prototype, self.project.arch)
+        ReturnMaker(self._ail_manager, self.project.arch, self.function, ail_graph, prototype=prototype)
 
         return ail_graph
 
@@ -2655,7 +2675,6 @@ class Clinic(Analysis, Serializable):
                 returnty = self.function.prototype.returnty
             else:
                 returnty = SimTypeInt()
-
         self.function.prototype = SimTypeFunction(func_args, returnty).with_arch(self.project.arch)
         self.function.prototype_source = PrototypeSource.CCA_DECOMPILER
 
@@ -3414,7 +3433,8 @@ class Clinic(Analysis, Serializable):
 
         # corner-case: the last statement of original_block might have been patched by _remove_redundant_jump_blocks.
         # we detect such case and fix it in new_head_ail
-        self._remove_redundant_jump_blocks_repatch_relifted_block(original_block, end_block_ail)
+        if not self._remove_redundant_jump_blocks_repatch_relifted_block(original_block, end_block_ail):
+            return None
 
         ail_graph.remove_node(original_block)
 
@@ -3848,7 +3868,7 @@ class Clinic(Analysis, Serializable):
     @staticmethod
     def _remove_redundant_jump_blocks_repatch_relifted_block(
         patched_block: ailment.Block, new_block: ailment.Block
-    ) -> None:
+    ) -> bool:
         """
         The last statement of patched_block might have been patched by _remove_redundant_jump_blocks. In this case, we
         fix the last instruction for new_block, which is a newly lifted (from VEX) block that ends at the same address
@@ -3856,7 +3876,14 @@ class Clinic(Analysis, Serializable):
 
         :param patched_block:   Previously patched block.
         :param new_block:       Newly lifted block.
+        :return:                False if new_block cannot stand in for patched_block, in which case the caller must
+                                not rewrite the graph; True otherwise.
         """
+
+        if not patched_block.statements or not new_block.statements:
+            # graph recovery emits a zero-size block for a fall-through that no instruction backs. Such a block
+            # has no last statement to repatch, so it cannot carry the transfer patched_block ends with.
+            return False
 
         if (
             isinstance(patched_block.statements[-1], ailment.Stmt.Jump)
@@ -3877,6 +3904,8 @@ class Clinic(Analysis, Serializable):
         ):
             new_block.statements[-1].true_target = patched_block.statements[-1].true_target
             new_block.statements[-1].false_target = patched_block.statements[-1].false_target
+
+        return True
 
     def _insert_block_labels(self, ail_graph):
         for node in ail_graph.nodes:
